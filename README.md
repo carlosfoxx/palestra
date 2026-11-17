@@ -21,7 +21,7 @@
 | `render.yaml` | Blueprint do Render com **dois** serviços: `oficina-automacao` e `triagem-ia` |
 | `oficina/README.md` | Deploy no GitHub + Render, roteiro de 15 min e limitações do free tier |
 | `ia/README.md` | Chave do Gemini, deploy, roteiro de 6–8 min, custo e limitações |
-| `brincadeiras/aprovacao.py` | Brincadeira de encerramento: "prevê" se o aluno vai passar (offline, determinístico) |
+| `brincadeiras/` | Brincadeiras de encerramento: oráculo por hash e quiz interativo com perguntas aleatórias |
 | `exercicio/guia-do-aluno.md` | Handout do exercício (imprima ou distribua o link) |
 | `exercicio/gabarito-instrutor.md` | Solução passo a passo, rubrica e erros comuns |
 | `workflows/01-demo.json` | Workflow da demo (importar no n8n) |
@@ -206,14 +206,19 @@ Roteiro detalhado, variáveis, custo e limitações: `ia/README.md`.
 
 ## Brincadeira de encerramento (opcional)
 
-`brincadeiras/aprovacao.py` recebe um nome e devolve um boletim fictício com veredito.
-É determinístico: o mesmo nome sempre dá o mesmo resultado — porque é um hash, não uma IA.
+Duas opções em `brincadeiras/`, ambas offline e sem instalar nada:
+
+- `aprovacao.py`: recebe um nome e devolve um boletim fictício determinístico —
+  o mesmo nome sempre dá o mesmo resultado, porque é um hash, não uma IA.
+- `quiz_aprovacao.py`: o aluno responde 6 perguntas sorteadas e recebe nota e
+  veredito. Cada rodada muda.
 
 ```bash
 python brincadeiras/aprovacao.py --nome "Maria Silva"
+python brincadeiras/quiz_aprovacao.py
 ```
 
-Funciona offline, sem instalar nada. Uso, flags e a piada de fechamento: `brincadeiras/README.md`.
+Uso, flags e a piada de fechamento: `brincadeiras/README.md`.
 
 ---
 
