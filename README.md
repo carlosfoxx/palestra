@@ -2,7 +2,7 @@
 
 **Público:** iniciantes / não técnicos
 **Duração:** 45–60 min (roteiro calibrado para 55 min, com cortes marcados)
-**Ferramenta do exercício:** n8n (no-code, roda local, sem cartão de crédito)
+**Ferramenta do exercício:** n8n (no-code) **ou** o simulador local — escolha pelo risco da sala
 **Formato:** 3 exemplos reais → demo ao vivo → exercício em duplas
 
 ---
@@ -13,6 +13,8 @@
 |---|---|
 | `roteiro-palestra.md` | Roteiro minuto a minuto, com falas prontas, ações na tela e planos B |
 | `slides.html` | Deck completo. Abra com duplo clique. Navegue com ← → |
+| `simulador/index.html` | **Simulador em tempo real**: arquivo único, offline, sem instalar nada |
+| `simulador/README.md` | Como distribuir, gabarito das regras e roteiro de 12 min em aula |
 | `exercicio/guia-do-aluno.md` | Handout do exercício (imprima ou distribua o link) |
 | `exercicio/gabarito-instrutor.md` | Solução passo a passo, rubrica e erros comuns |
 | `workflows/01-demo.json` | Workflow da demo (importar no n8n) |
@@ -33,7 +35,7 @@
 | 0:12–0:22 | 3 exemplos reais (WhatsApp 24/7, triagem, relatório) | 5–8 |
 | 0:22–0:33 | Demo ao vivo no n8n | 9–14 |
 | 0:33–0:41 | Erros comuns + como escolher a primeira automação | 15–17 |
-| 0:41–0:53 | Exercício em duplas (12 min) | 18–19 |
+| 0:41–0:53 | Exercício em duplas (12 min): simulador ou n8n | 18–19 |
 | 0:53–0:57 | Compartilhar resultados | 20 |
 | 0:57–1:00 | Desafio de 7 dias + fechamento | 21–22 |
 
@@ -46,6 +48,8 @@
 ### Na véspera (30 min)
 
 - [ ] Instalar/abrir o n8n e rodar a demo uma vez do início ao fim
+- [ ] Abrir `simulador/index.html`, rodar os 3 cenários e conferir o placar
+- [ ] Enviar o `simulador/index.html` para você mesmo por WhatsApp/e-mail (teste real de distribuição)
 - [ ] Criar uma URL em https://webhook.site e deixar a aba aberta no navegador
 - [ ] Importar `workflows/01-demo.json` e `workflows/02-exercicio-solucao.json`
 - [ ] Testar o formulário da demo no celular (mesma rede ou túnel)
@@ -56,6 +60,7 @@
 ### No dia (10 min antes)
 
 - [ ] n8n rodando em `http://localhost:5678`
+- [ ] `simulador/index.html` aberto em outra aba (se for usar na sala)
 - [ ] Aba do webhook.site aberta e visível
 - [ ] Deck aberto (tecla `F` para tela cheia)
 - [ ] Celular com internet para mostrar o "alerta chegando"
@@ -63,9 +68,12 @@
 
 ### Plano B (sem internet ou n8n travou)
 
-1. A demo tem prints no deck — continue a explicação pelos slides 11–14.
-2. O exercício vira "monte no papel": cada dupla desenha os 4 blocos (gatilho → condição → ação → registro) do processo que escolher.
-3. Peça a uma dupla que já usou Zapier/Make/Power Automate para contar a experiência.
+1. **A demo tem prints no deck** — continue a explicação pelos slides 11–14.
+2. **O exercício continua com o simulador** (`simulador/index.html`), que roda offline e não depende
+   do n8n. Cada dupla configura as regras e compara o placar.
+3. Sem computador por dupla: projete o simulador e conduza a turma por votação ("alerta em tudo ou só
+   no urgente?"). Depois, cada dupla desenha os 4 blocos do processo que escolher.
+4. Peça a uma dupla que já usou Zapier/Make/Power Automate para contar a experiência.
 
 ---
 
@@ -86,6 +94,28 @@ docker run -it --rm --name n8n -p 5678:5678 -v n8n_data:/home/node/.n8n docker.n
 ```
 
 > Se `npx n8n` reclamar da versão do Node, use Node 22 LTS (nvm/fnm) ou a opção Docker.
+
+---
+
+## Simulador: o exercício sem instalação
+
+`simulador/index.html` é um arquivo único que abre com duplo clique, **offline**, sem n8n e sem conta.
+O participante ajusta regras e vê a automação decidindo em tempo real — alertas, fila, KPIs e placar.
+
+**Como usar em 4 passos:**
+
+1. Distribua o arquivo (WhatsApp, e-mail, pendrive). Cada um abre o seu.
+2. Peça que leiam a missão do cenário e ajustem as regras.
+3. Cada rodada leva ~20 s. O modal final mostra nota por critério e o próximo passo.
+4. Compare **critérios**, não números: "por que sua pontuação de alertas foi maior que a minha?"
+
+**Os 3 cenários:** atendimento WhatsApp (18 mensagens), triagem de solicitações (16 pedidos) e
+relatório diário (12 dias). O gabarito das regras, o roteiro de 12 min e a demo de 60 s
+(automação OFF → fila crescendo → ON → fila drenando) estão em `simulador/README.md`.
+
+**n8n ou simulador?** Use o simulador quando a sala tem restrição de instalação, internet instável ou
+pouco tempo. Use o n8n quando quiser que a turma veja a ferramenta real e conecte um webhook de verdade.
+Os dois usam o mesmo raciocínio — dá para fazer o simulador primeiro e o n8n como desafio de casa.
 
 ---
 

@@ -1,6 +1,6 @@
 # Roteiro da palestra — Automatização de Processos na Prática
 
-> **Formato:** 55 min (flex 45–60) · **Público:** iniciantes · **Demo:** n8n
+> **Formato:** 55 min (flex 45–60) · **Público:** iniciantes · **Demo:** n8n · **Exercício:** simulador local (plano B: n8n)
 > Legenda: 🎤 fala · 🖥️ ação na tela · ⏱️ tempo · 🅿️ plano B
 > Falas em bloco de citação são sugestões — adapte ao seu jeito de falar.
 
@@ -216,6 +216,10 @@ registro no n8n.
 🅿️ **Se a internet cair:** pule para os slides 11–14 e narre pelos prints. Não peça desculpa duas
 vezes — uma frase e siga.
 
+💡 **Versão de 60 s com o simulador:** abra `simulador/index.html`, deixe rodar 5 segundos, desligue a
+Automação (a fila manual cresce na tela) e ligue de novo (a fila drena em segundos). É a mesma lição
+da demo — com zero dependência de rede.
+
 **Transição:** "Antes de vocês colocarem a mão, cinco minutos sobre o que dá errado."
 
 ---
@@ -256,31 +260,44 @@ vezes — uma frase e siga.
 
 ## 0:41–0:53 · Exercício em duplas (12 min)
 
+> **Qual exercício usar?** O **plano A é o simulador** (`simulador/index.html`): abre com duplo
+> clique, roda offline, e cada dupla vê o próprio placar e o diagnóstico por critério. Use o
+> **n8n** (plano B) se a sala já tem a ferramenta instalada e você quer que eles vejam os nós reais.
+> O raciocínio cobrado é o mesmo: gatilho → condição → ação → registro.
+
 🖥️ Slide 18 (briefing).
 
 🎤 **Instruções — fale devagar e repita o critério de sucesso:**
 
-> "Em duplas, doze minutos. Um computador por dupla, n8n aberto.
+> "Em duplas, doze minutos. Um computador por dupla, com o simulador aberto. Se você está no
+> plano n8n, é o workflow do exercício.
 >
-> Missão: montar um robô que recebe uma solicitação por formulário, classifica pelo impacto e avisa
-> o responsável em menos de cinco segundos.
+> Missão: ajustar as regras de um processo real e ver o robô decidindo em tempo real. No simulador:
+> abra o cenário **Atendimento WhatsApp**, leia a missão e mude as regras de alerta, transferência e
+> registro. No n8n: monte o fluxo formulário → impacto → alerta.
 >
-> O critério de sucesso é simples: **uma solicitação de impacto 'Todos' tem que chegar no webhook de
-> vocês. Uma de impacto menor não pode chegar — mas tem que aparecer registrada no n8n.**
+> O critério de sucesso é o mesmo nos dois: **o alerta tem que chegar quando importa, não pode chegar
+> quando não importa — e tudo tem que ficar registrado.**
 >
-> O guia está com vocês, com o passo a passo e os erros mais comuns. Eu vou passar nas duplas.
-> Não me chamem antes de tentar rodar uma vez — o erro faz parte."
+> O guia está com vocês. Eu vou passar nas duplas. Não me chamem antes de rodar uma vez — o erro faz
+> parte."
 
 🖥️ Slide 19 (5 passos) fica no telão durante todo o exercício. **Não troque de slide.**
+Se estiver usando o simulador, deixe o **simulador projetado** e o slide 19 apenas como referência
+do roteiro n8n.
 
 🎤 **Enquanto circula (não fique no palco):**
 - Pergunte "onde vocês estão?" em vez de "deu certo?"
 - Se uma dupla travou 3+ min no mesmo ponto, sente e faça a pergunta que destrava, não a correção.
-- Se uma dupla terminou cedo: aponte os desafios extras do guia.
-- Se metade da sala travou no mesmo ponto (ex.: URL do webhook): pare tudo, projete e resolva em 60 s.
+- Se uma dupla terminou cedo: aponte os desafios extras do guia. No simulador, peça outro cenário
+  (Triagem ou Relatório) e meta de 90+.
+- Se metade da sala travou no mesmo ponto (regra do webhook, escolha de regra): pare tudo, projete e
+  resolva em 60 s.
 
-🅿️ **Se o n8n não abrir na máquina de alguém:** pareie com a dupla vizinha; ninguém fica de fora.
-🅿️ **Sem internet:** exercício no papel — desenhe os 4 blocos + a regra + o "deu erro, avisa quem".
+🅿️ **Se o n8n não abrir na máquina de alguém:** troque para o `simulador/index.html` — é offline e
+não depende de instalação. Ou pareie com a dupla vizinha; ninguém fica de fora.
+🅿️ **Sem internet:** o simulador continua rodando. Se nem arquivo local abrir, exercício no papel —
+desenhe os 4 blocos + a regra + o "deu erro, avisa quem".
 
 ---
 

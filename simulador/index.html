@@ -1,0 +1,1414 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Simulador de Automação — ao vivo</title>
+<style>
+  :root{
+    --bg:#eef2f5; --panel:#fff; --ink:#0b1220; --muted:#5b6779; --line:#dde4ea;
+    --accent:#16a34a; --accent-soft:#e8f7ee; --blue:#0ea5e9;
+    --alta:#dc2626; --normal:#d97706; --baixa:#64748b;
+    --console:#0b1220; --radius:14px;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;height:100%}
+  body{
+    background:var(--bg); color:var(--ink); font-size:14px; overflow:hidden;
+    font-family:"Segoe UI",system-ui,-apple-system,"Helvetica Neue",Arial,sans-serif;
+    -webkit-font-smoothing:antialiased;
+  }
+  button{font:inherit;cursor:pointer;border:0;background:none;color:inherit}
+  select{font:inherit}
+  ::-webkit-scrollbar{width:9px;height:9px}
+  ::-webkit-scrollbar-thumb{background:#c3ceda;border-radius:99px}
+  ::-webkit-scrollbar-track{background:transparent}
+
+  /* header */
+  header{
+    height:64px;display:flex;align-items:center;gap:14px;padding:0 18px;background:#fff;
+    border-bottom:1px solid var(--line);position:relative;z-index:20;
+  }
+  .brand{display:flex;align-items:center;gap:10px;flex:0 0 auto}
+  .logo{
+    width:34px;height:34px;border-radius:10px;display:grid;place-items:center;color:#fff;font-size:17px;
+    background:linear-gradient(135deg,#16a34a,#0ea5e9);
+  }
+  .brand b{font-size:14.5px;display:block;line-height:1.15;letter-spacing:-.01em}
+  .brand small{font-size:10.5px;color:var(--muted);letter-spacing:.02em}
+  .tabs{display:flex;gap:4px;background:#f1f4f7;padding:4px;border-radius:999px;overflow:auto}
+  .tab{
+    padding:7px 11px;border-radius:999px;font-size:12px;font-weight:650;color:#44536a;white-space:nowrap;
+    display:flex;align-items:center;gap:5px;
+  }
+  .tab.on{background:#fff;color:var(--ink);box-shadow:0 2px 8px rgba(11,18,32,.1)}
+  .top-actions{margin-left:auto;display:flex;align-items:center;gap:7px;flex:0 0 auto}
+  .btn{
+    display:inline-flex;align-items:center;gap:6px;border-radius:10px;padding:8px 13px;
+    font-size:12.5px;font-weight:700;transition:transform .1s,background .15s;
+  }
+  .btn:active{transform:translateY(1px)}
+  .btn.primary{background:var(--accent);color:#fff}
+  .btn.primary:hover{background:#15803d}
+  .btn.ghost{background:#f1f4f7;color:#334155}
+  .btn.ghost:hover{background:#e6ebf0}
+  .btn.wide{width:100%;justify-content:center;margin-top:10px}
+  .icon{
+    width:32px;height:32px;border-radius:50%;background:#f1f4f7;color:#334155;
+    display:grid;place-items:center;font-weight:800;font-size:13px;flex:0 0 auto;
+  }
+  .switch{
+    display:flex;align-items:center;gap:7px;border:1px solid var(--line);background:#fff;
+    border-radius:999px;padding:4px 10px 4px 5px;font-size:11.5px;font-weight:750;color:#475569;
+  }
+  .switch .track{width:32px;height:19px;border-radius:999px;background:#cbd5e1;position:relative;transition:.2s}
+  .switch .track i{position:absolute;top:2px;left:2px;width:15px;height:15px;border-radius:50%;background:#fff;transition:.2s}
+  .switch.on{border-color:#bbe8cc;background:var(--accent-soft);color:#0f6b32}
+  .switch.on .track{background:var(--accent)}
+  .switch.on .track i{left:15px}
+  #progressBar{position:fixed;top:0;left:0;height:3px;background:linear-gradient(90deg,#16a34a,#0ea5e9);width:0;z-index:30;transition:width .2s}
+
+  /* layout */
+  main{
+    display:grid;grid-template-columns:326px minmax(0,1fr) 336px;gap:14px;
+    padding:14px 18px;height:calc(100dvh - 64px);overflow:hidden;
+  }
+  .panel{
+    background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);
+    padding:14px;display:flex;flex-direction:column;min-height:0;overflow:auto;
+  }
+  .eyebrow{font-size:10px;font-weight:800;letter-spacing:.14em;text-transform:uppercase;color:var(--accent)}
+  .mission{background:linear-gradient(160deg,#f0fbf4,#fff);border:1px solid #d6eee0;border-radius:12px;padding:12px}
+  .mission p{margin:6px 0 0;font-size:12.5px;line-height:1.45;color:#1e293b}
+  .hint{margin-top:8px;font-size:11.5px;line-height:1.4;color:#0f6b32;background:#e8f7ee;border-radius:8px;padding:7px 9px}
+  .hint:empty{display:none}
+  .sect{display:flex;align-items:center;justify-content:space-between;margin:16px 0 8px}
+  .sect h2{font-size:12px;text-transform:uppercase;letter-spacing:.1em;margin:0;color:#334155}
+  .link{font-size:11px;font-weight:700;color:#64748b;text-decoration:underline;text-underline-offset:2px}
+  .link:hover{color:var(--ink)}
+  .rule{margin-bottom:11px}
+  .rule>label:not(.toggle){display:block;font-size:11.5px;font-weight:650;color:#475569;margin-bottom:5px;line-height:1.3}
+  .rule select{
+    width:100%;padding:8px 10px;border:1px solid #cfd9e3;border-radius:9px;background:#fbfcfe;
+    font-size:12.5px;color:#0f172a;outline:none;
+  }
+  .rule select:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(22,163,74,.13)}
+  .toggle{display:flex;align-items:center;gap:9px;cursor:pointer;font-size:11.5px;font-weight:650;color:#475569;line-height:1.3}
+  .toggle input{position:absolute;opacity:0;pointer-events:none}
+  .toggle .tr{width:36px;height:21px;border-radius:999px;background:#cbd5e1;position:relative;transition:.2s;flex:0 0 auto}
+  .toggle .tr i{position:absolute;top:3px;left:3px;width:15px;height:15px;border-radius:50%;background:#fff;transition:.2s}
+  .toggle input:checked + .tr{background:var(--accent)}
+  .toggle input:checked + .tr i{left:18px}
+  .toggle input:focus-visible + .tr{box-shadow:0 0 0 3px rgba(22,163,74,.25)}
+  #dirtyNote{display:none;font-size:10.5px;color:#a16207;background:#fef4e2;border-radius:7px;padding:6px 8px;margin-top:8px;text-align:center}
+  #dirtyNote.show{display:block}
+  .best{margin-top:8px;font-size:11px;color:var(--muted);text-align:center}
+  .best b{color:var(--ink)}
+
+  /* center */
+  .center{display:flex;flex-direction:column;gap:12px;min-height:0}
+  .pipeline{display:flex;gap:7px;align-items:stretch;flex:0 0 auto}
+  .pnode{
+    flex:1;min-width:0;background:#fff;border:1px solid var(--line);border-radius:12px;
+    padding:9px 11px;min-height:86px;display:flex;flex-direction:column;gap:2px;
+    transition:border-color .18s,box-shadow .18s,transform .18s;
+  }
+  .pnode .n{font-size:9.5px;font-weight:800;letter-spacing:.09em;text-transform:uppercase;color:var(--muted)}
+  .pnode b{
+    font-size:12px;line-height:1.25;font-weight:700;color:#0f172a;
+    display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;
+  }
+  .pnode small{font-size:10px;color:var(--muted);margin-top:auto}
+  .pnode.on{border-color:var(--accent);box-shadow:0 0 0 3px rgba(22,163,74,.14);transform:translateY(-2px)}
+  .parrow{display:flex;align-items:center;color:#b3bfcc;font-weight:800;font-size:15px;flex:0 0 auto}
+
+  .console{flex:1;min-height:0;background:var(--console);border-radius:var(--radius);display:flex;flex-direction:column;overflow:hidden}
+  .console-head{
+    display:flex;align-items:center;gap:10px;padding:10px 14px;border-bottom:1px solid #1e2b44;
+    color:#cbd5e1;font-size:11px;font-weight:800;letter-spacing:.07em;text-transform:uppercase;flex:0 0 auto;
+  }
+  .spacer{flex:1}
+  .pill{font-size:9.5px;letter-spacing:.06em;text-transform:uppercase;padding:3px 8px;border-radius:999px;background:#1e293b;color:#94a3b8;font-weight:800}
+  .pill.run{background:#14352a;color:#6ee7b7}
+  .pill.pause{background:#4a3415;color:#fbbf24}
+  .pill.done{background:#1e3a5f;color:#7dd3fc}
+  .trace{flex:1;overflow-y:auto;padding:8px 14px;font-family:ui-monospace,SFMono-Regular,Consolas,monospace;font-size:11.5px;color:#c7d2e1}
+  .line{display:flex;gap:8px;padding:3.5px 0;border-bottom:1px dashed rgba(148,163,184,.1);align-items:baseline;animation:lineIn .22s ease}
+  @keyframes lineIn{from{opacity:0;transform:translateX(-6px)}to{opacity:1;transform:none}}
+  .ltime{color:#64748b;flex:0 0 48px;white-space:nowrap}
+  .ltag{flex:0 0 68px;text-align:center;border-radius:4px;padding:1px 4px;font-size:9px;font-weight:800;letter-spacing:.06em;text-transform:uppercase}
+  .ltag.gatilho{background:#1e3a5f;color:#7dd3fc}
+  .ltag.condicao{background:#4a3415;color:#fbbf24}
+  .ltag.acao{background:#14352a;color:#6ee7b7}
+  .ltag.registro{background:#2a2f3a;color:#cbd5e1}
+  .ltag.fila{background:#4a1d1d;color:#fca5a5}
+  .ltxt{color:#dbe4f0;min-width:0;line-height:1.4}
+  .ltxt b{color:#fff}
+  .empty{color:#64748b;padding:28px 10px;text-align:center;line-height:1.6}
+  .empty b{color:#94a3b8}
+
+  /* right */
+  .phone{background:#0f172a;border-radius:16px;padding:12px;color:#e2e8f0;flex:0 0 auto}
+  .phone-head{display:flex;align-items:center;gap:6px;font-size:10px;font-weight:800;letter-spacing:.09em;text-transform:uppercase;color:#94a3b8;margin-bottom:8px}
+  .phone-head .live{width:6px;height:6px;border-radius:50%;background:#22c55e;box-shadow:0 0 0 3px rgba(34,197,94,.18)}
+  #phoneOff{margin-left:auto;display:none;background:#4a1d1d;color:#fca5a5;border-radius:999px;padding:2px 7px;font-size:9px}
+  #phoneOff.show{display:inline-block}
+  .alerts{display:flex;flex-direction:column;gap:6px;max-height:206px;overflow-y:auto}
+  .alert{background:#fff;color:#0b1220;border-radius:10px;padding:8px 10px;animation:pop .22s ease}
+  @keyframes pop{from{opacity:0;transform:translateY(-7px) scale(.98)}to{opacity:1;transform:none}}
+  .alert .at{display:flex;justify-content:space-between;font-size:8.5px;color:#64748b;font-weight:800;text-transform:uppercase;letter-spacing:.06em}
+  .alert b{font-size:11.5px;display:block;margin-top:2px}
+  .alert p{margin:1px 0 0;font-size:10.5px;color:#475569;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .no-alert{color:#64748b;font-size:11px;text-align:center;padding:16px 6px;line-height:1.5}
+
+  #queueBox{display:none;margin-top:12px;border:1px solid #f3d6d6;background:#fdf2f2;border-radius:12px;padding:10px 12px}
+  #queueBox.show{display:block}
+  #queueBox .qh{display:flex;justify-content:space-between;align-items:baseline;font-size:11.5px;font-weight:700;color:#991b1b}
+  #queueBox .qh b{font-size:19px}
+  #queueBox .bar{height:6px;border-radius:99px;background:#f6dada;overflow:hidden;margin:6px 0 5px}
+  #queueBox .bar i{display:block;height:100%;width:0;background:#dc2626;transition:width .25s}
+  #queueBox small{font-size:9.5px;color:#b45309;line-height:1.35;display:block}
+
+  .kpis{display:flex;flex-direction:column;gap:9px;margin-top:12px}
+  .kpi .kh{display:flex;justify-content:space-between;align-items:baseline;font-size:11px;color:var(--muted);font-weight:650}
+  .kpi .kv{font-size:14px;font-weight:800;color:var(--ink)}
+  .kpi .kv.bad{color:var(--alta)}
+  .kpi .bar{height:5px;border-radius:999px;background:#e8edf2;overflow:hidden;margin-top:3px}
+  .kpi .bar i{display:block;height:100%;width:0;background:var(--accent);transition:width .3s}
+  .score{display:flex;align-items:center;gap:12px;margin-top:auto;padding-top:14px;border-top:1px solid var(--line)}
+  .ring{
+    width:74px;height:74px;border-radius:50%;display:grid;place-items:center;flex:0 0 auto;position:relative;
+    background:conic-gradient(#cbd5e1 0 0%, #e8edf2 0 100%);
+  }
+  .ring::before{content:"";position:absolute;inset:7px;background:#fff;border-radius:50%}
+  .ring span{position:relative;font-size:20px;font-weight:850;letter-spacing:-.03em}
+  .score-txt b{display:block;font-size:12px}
+  .score-txt small{font-size:10.5px;color:var(--muted);line-height:1.35;display:block}
+
+  /* modal */
+  .modal{position:fixed;inset:0;background:rgba(11,18,32,.58);display:none;place-items:center;z-index:100;padding:22px}
+  .modal.open{display:grid}
+  .sheet{
+    background:#fff;border-radius:18px;max-width:780px;width:100%;max-height:88vh;overflow:auto;
+    padding:26px 28px;position:relative;animation:pop .24s ease;
+  }
+  .sheet h2{font-size:22px;margin:4px 0 6px;letter-spacing:-.02em}
+  .sheet h3{font-size:12px;text-transform:uppercase;letter-spacing:.09em;color:var(--muted);margin:20px 0 8px}
+  .x{position:absolute;top:12px;right:14px;width:30px;height:30px;border-radius:50%;background:#f1f4f7;display:grid;place-items:center;font-size:16px;color:#475569}
+  .hero{display:flex;align-items:center;gap:20px;margin:12px 0 6px}
+  .bigring{width:96px;height:96px;border-radius:50%;display:grid;place-items:center;position:relative;flex:0 0 auto}
+  .bigring::before{content:"";position:absolute;inset:9px;background:#fff;border-radius:50%}
+  .bigring span{position:relative;font-size:27px;font-weight:850;letter-spacing:-.03em}
+  .hero b{font-size:16px;display:block;margin-bottom:3px}
+  .hero p{margin:0;font-size:12.5px;color:var(--muted);line-height:1.5;max-width:44ch}
+  .parts{display:flex;flex-direction:column;gap:7px}
+  .rpart{display:grid;grid-template-columns:150px 1fr 42px 52px;gap:9px;align-items:center;font-size:11.5px}
+  .rpart .rbar{height:7px;border-radius:99px;background:#e8edf2;overflow:hidden}
+  .rpart .rbar i{display:block;height:100%;border-radius:99px}
+  .rpart b{text-align:right}
+  .rpart small{color:var(--muted);font-size:9.5px;text-align:right}
+  table{width:100%;border-collapse:collapse;font-size:11.5px}
+  th,td{text-align:left;padding:7px 8px;border-bottom:1px solid var(--line);vertical-align:top}
+  th{font-size:9.5px;text-transform:uppercase;letter-spacing:.07em;color:var(--muted)}
+  td.ok{color:#15803d;font-weight:650}
+  td.no{color:#b91c1c;font-weight:650}
+  .modal-actions{display:flex;justify-content:flex-end;gap:8px;margin-top:22px;flex-wrap:wrap}
+  .sheet p.note{font-size:11px;color:var(--muted);line-height:1.5;margin:10px 0 0}
+  .help-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:10px}
+  .help-card{border:1px solid var(--line);border-radius:11px;padding:10px 12px}
+  .help-card b{display:block;font-size:12px;margin-bottom:3px}
+  .help-card p{margin:0;font-size:11.5px;color:var(--muted);line-height:1.45}
+  kbd{background:#f1f4f7;border:1px solid #d7dee6;border-bottom-width:2px;border-radius:5px;padding:1px 5px;font-size:10.5px;font-weight:700;font-family:inherit}
+
+  @media (max-width:1180px){
+    body{overflow:auto}
+    main{height:auto;grid-template-columns:1fr;padding:12px}
+    .panel{overflow:visible}
+    .console{height:360px}
+    header{flex-wrap:wrap;height:auto;padding:10px 12px;gap:8px}
+    .tabs{order:3;width:100%}
+    .top-actions{width:100%;justify-content:flex-end;flex-wrap:wrap}
+    .help-grid{grid-template-columns:1fr}
+  }
+  @media (max-width:700px){
+    .pipeline{flex-wrap:wrap}
+    .pnode{flex:1 1 40%}
+    .parrow{display:none}
+    .rpart{grid-template-columns:1fr 42px 46px}
+    .rpart span:first-child{grid-column:1 / -1}
+  }
+  @media (prefers-reduced-motion:reduce){
+    *{animation:none!important;transition:none!important}
+  }
+</style>
+</head>
+<body>
+<div id="progressBar"></div>
+
+<header>
+  <div class="brand">
+    <div class="logo">⚙</div>
+    <div><b>Simulador de Automação</b><small>gatilho → condição → ação → registro</small></div>
+  </div>
+  <nav class="tabs" id="tabs"></nav>
+  <div class="top-actions">
+    <button class="icon" id="helpBtn" title="Como usar (?)" aria-label="Como usar">?</button>
+    <button class="switch on" id="autoBtn" title="Ligar/desligar a automação (A)">
+      <span class="track"><i></i></span><span id="autoLabel">Automação ON</span>
+    </button>
+    <button class="btn primary" id="playBtn">▶ Iniciar</button>
+    <button class="btn ghost" id="resetBtn" title="Reiniciar (R)">⟲</button>
+    <button class="btn ghost" id="speedBtn" title="Velocidade">1x</button>
+  </div>
+</header>
+
+<main>
+  <aside class="panel">
+    <div class="mission">
+      <div class="eyebrow">Missão</div>
+      <p id="missionText"></p>
+      <div class="hint" id="hintText"></div>
+    </div>
+
+    <div class="sect"><h2>Suas regras</h2><button class="link" id="resetRules">restaurar padrão</button></div>
+    <div id="rulesForm"></div>
+    <div id="dirtyNote">Regras alteradas — teste de novo para comparar o placar.</div>
+    <button class="btn primary wide" id="tryBtn">▶ Testar estas regras</button>
+    <div class="best" id="bestTxt"></div>
+  </aside>
+
+  <section class="center">
+    <div class="pipeline" id="pipeline">
+      <div class="pnode"><span class="n">1 · Gatilho</span><b>—</b><small>o que faz começar</small></div>
+      <div class="parrow">›</div>
+      <div class="pnode"><span class="n">2 · Condição</span><b>—</b><small>qual caminho seguir</small></div>
+      <div class="parrow">›</div>
+      <div class="pnode"><span class="n">3 · Ação</span><b>—</b><small>o que o robô faz</small></div>
+      <div class="parrow">›</div>
+      <div class="pnode"><span class="n">4 · Registro</span><b>—</b><small>onde isso fica</small></div>
+    </div>
+
+    <div class="console">
+      <div class="console-head">
+        <span>Execução ao vivo</span>
+        <span class="pill" id="runState">parado</span>
+        <span class="spacer"></span>
+        <span id="progressTxt">0 / 18</span>
+      </div>
+      <div class="trace" id="trace" aria-live="off">
+        <div class="empty">Clique em <b>Iniciar</b> para ver a automação rodando.<br>Os quatro blocos acendem a cada evento.</div>
+      </div>
+    </div>
+  </section>
+
+  <aside class="panel">
+    <div class="phone">
+      <div class="phone-head"><span class="live"></span> Alertas <span id="phoneOff">OFF</span></div>
+      <div class="alerts" id="alerts"><div class="no-alert">Nenhum alerta ainda</div></div>
+    </div>
+
+    <div id="queueBox">
+      <div class="qh"><span>Fila manual</span><b id="queueNum">0</b></div>
+      <div class="bar"><i id="queueBar"></i></div>
+      <small>Sem automação, cada caso leva ~17 min. A fila só cresce.</small>
+    </div>
+
+    <div class="kpis" id="kpis"></div>
+
+    <div class="score">
+      <div class="ring" id="ring"><span id="scoreNum">—</span></div>
+      <div class="score-txt"><b>Placar</b><small id="scoreMsg">ajuste as regras e inicie</small></div>
+    </div>
+  </aside>
+</main>
+
+<div class="modal" id="modal"><div class="sheet" id="sheet"></div></div>
+
+<div class="modal" id="help">
+  <div class="sheet">
+    <button class="x" data-act="closehelp" aria-label="Fechar">×</button>
+    <div class="eyebrow">Como usar</div>
+    <h2>O simulador em 30 segundos</h2>
+    <p class="note">Este é o mesmo raciocínio da palestra e do n8n — só que aqui você vê a decisão acontecendo em tempo real.</p>
+    <div class="help-grid">
+      <div class="help-card"><b>1 · Gatilho</b><p>Um evento chega sozinho: mensagem, solicitação ou fechamento do dia.</p></div>
+      <div class="help-card"><b>2 · Condição</b><p>Suas regras decidem o caminho. É aqui que a automação ganha inteligência.</p></div>
+      <div class="help-card"><b>3 · Ação</b><p>O robô alerta, responde, transfere ou envia — em segundos.</p></div>
+      <div class="help-card"><b>4 · Registro</b><p>Tudo fica salvo. Sem registro, é mágica; com registro, é processo.</p></div>
+      <div class="help-card"><b>Como jogar</b><p>Escolha um cenário, ajuste as regras e clique em <b>Testar estas regras</b>. O placar aparece no fim. Meta: 80+.</p></div>
+      <div class="help-card"><b>O truque da palestra</b><p>Desligue a <b>Automação</b> e veja a fila crescer. Ligue de novo e veja ela drenar em segundos.</p></div>
+    </div>
+    <h3>Atalhos</h3>
+    <p class="note"><kbd>Espaço</kbd> iniciar/pausar · <kbd>R</kbd> reiniciar · <kbd>A</kbd> automação on/off · <kbd>1</kbd> <kbd>2</kbd> <kbd>3</kbd> cenários · <kbd>?</kbd> ajuda</p>
+    <p class="note">Todos os participantes recebem exatamente o mesmo dia de trabalho. A diferença no placar vem das regras, não da sorte.</p>
+  </div>
+</div>
+
+<script>
+'use strict';
+
+/* ---------- helpers ---------- */
+const $ = (s) => document.querySelector(s);
+const now = () => performance.now();
+const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+const pct = (n, d) => (d ? n / d : 0);
+const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+const signed = (v) => (v > 0 ? '+' : '') + v;
+const avg = (a) => (a.length ? a.reduce((s, v) => s + v, 0) / a.length : null);
+const mm = (min) => String(Math.floor(min / 60)).padStart(2, '0') + ':' + String(min % 60).padStart(2, '0');
+
+function f1score(tp, fp, fn) {
+  const p = tp + fp ? tp / (tp + fp) : 0;
+  const r = tp + fn ? tp / (tp + fn) : 0;
+  return p + r ? (2 * p * r) / (p + r) : 0;
+}
+function fmtSec(s) {
+  if (s == null) return '—';
+  if (s < 60) return Math.round(s) + ' s';
+  return Math.round(s / 60) + ' min';
+}
+function pctTxt(n, d) {
+  return d ? Math.round((n / d) * 100) + '%' : '—';
+}
+function emptyKpis() {
+  return [{ label: 'Aguardando', value: '—' }, { label: 'Aguardando', value: '—' }, { label: 'Aguardando', value: '—' }, { label: 'Aguardando', value: '—' }];
+}
+function labelRecipients(v) {
+  return v === 'diretoria' ? 'diretoria' : v === 'todos' ? 'toda a empresa' : 'ninguém';
+}
+
+/* ---------- dados fixos (mesmo dia para todos) ---------- */
+const RAW_WHATS = [
+  ['Maria', 'Estou com dor forte, preciso de atendimento hoje', 'alta', false],
+  ['João', 'Qual o horário de funcionamento?', 'baixa', false],
+  ['Ana', 'Vocês atendem Unimed?', 'normal', false],
+  ['Pedro', 'O convênio não autorizou e minha consulta é amanhã', 'alta', true],
+  ['Carla', 'Queria remarcar minha consulta', 'normal', false],
+  ['Lucas', 'Bom dia!', 'baixa', false],
+  ['Beatriz', 'Minha filha está com febre alta, conseguem encaixe hoje?', 'alta', false],
+  ['Rafael', 'Obrigado pelo atendimento!', 'baixa', false],
+  ['Juliana', 'Como faço para pegar o resultado do exame?', 'normal', true],
+  ['Marcos', 'Preciso cancelar a consulta de amanhã, é urgente', 'alta', false],
+  ['Fernanda', 'Vocês têm estacionamento?', 'baixa', false],
+  ['Bruno', 'Quanto custa a consulta particular?', 'normal', false],
+  ['Camila', 'Tomei o remédio errado, o que faço?', 'alta', true],
+  ['Diego', 'Qual o endereço da clínica?', 'baixa', false],
+  ['Larissa', 'Meu plano cobre fisioterapia?', 'normal', false],
+  ['Paulo', 'A cirurgia é amanhã e não recebi a autorização', 'alta', false],
+  ['Sofia', 'Podem me enviar o recibo por e-mail?', 'normal', true],
+  ['Tiago', 'Boa tarde, tudo bem?', 'baixa', false],
+].map(([name, msg, u, unknown], i) => ({ i, name, msg, u, unknown, time: mm(8 * 60 + i * 3) }));
+
+const RAW_TRI = [
+  ['Ana', 'Financeiro', 'Um', 'Nota fiscal com valor errado'],
+  ['Bruno', 'Comercial', 'Parte', 'Planilha de metas desatualizada'],
+  ['Carla', 'Suporte', 'Todos', 'Sistema de atendimento fora do ar'],
+  ['Diego', 'Financeiro', 'Parte', 'Fechamento do mês travado'],
+  ['Elisa', 'Comercial', 'Todos', 'CRM não carrega para ninguém'],
+  ['Fábio', 'Suporte', 'Um', 'Impressora do 2º andar sem toner'],
+  ['Gisele', 'Financeiro', 'Todos', 'Pagamentos não estão conciliando'],
+  ['Hugo', 'Comercial', 'Um', 'Dúvida sobre desconto de um cliente'],
+  ['Inês', 'Suporte', 'Parte', 'Lentidão no acesso remoto'],
+  ['João', 'Financeiro', 'Um', 'Relatório de fluxo de caixa desatualizado'],
+  ['Karina', 'Comercial', 'Parte', 'Proposta com formatação quebrada'],
+  ['Luis', 'Suporte', 'Todos', 'Queda de internet no escritório todo'],
+  ['Marta', 'Financeiro', 'Parte', 'Aprovações de compra paradas'],
+  ['Nilo', 'Comercial', 'Todos', 'Base de leads sem acesso'],
+  ['Olga', 'Suporte', 'Um', 'Headset com defeito'],
+  ['Pedro', 'Financeiro', 'Todos', 'Erro no cálculo da folha'],
+].map(([who, sector, impact, desc], i) => ({ i, who, sector, impact, desc, time: mm(9 * 60 + i * 2) }));
+
+const RAW_REL = [
+  [1, -18, false], [2, 4, false], [3, 12, true], [4, -24, false],
+  [5, 8, false], [6, 15, false], [7, -6, false], [8, 22, false],
+  [9, 3, true], [10, -11, false], [11, 9, false], [12, -2, false],
+].map(([day, v, failed]) => ({ i: day - 1, day, v, failed, time: 'Dia ' + day }));
+
+/* ---------- decisões ---------- */
+function decideWhats(ev, r) {
+  const alert =
+    r.alertWhen === 'todas' ||
+    (r.alertWhen === 'alta_normal' && ev.u !== 'baixa') ||
+    (r.alertWhen === 'alta' && ev.u === 'alta');
+  const transfer = r.transferWhen === 'sempre' || (r.transferWhen === 'incerto' && ev.unknown);
+  const unresolved = ev.unknown && !transfer;
+  const responseSec = unresolved ? null : transfer ? 45 : 3;
+  const bits = [];
+  if (alert) bits.push('alerta o time');
+  bits.push(unresolved ? 'sem resposta' : transfer ? 'humano assume (45 s)' : 'IA responde (3 s)');
+  return {
+    alert, transfer, record: !!r.record, unresolved, responseSec,
+    idealAlert: ev.u === 'alta', idealTransfer: ev.unknown,
+    condTxt: 'urgência ' + ev.u + ' → ' + (alert ? 'alerta' : 'silêncio'),
+    actionTxt: bits.join(' + '),
+    recordTxt: r.record ? 'conversa salva no histórico' : 'nada registrado',
+  };
+}
+
+function decideTri(ev, r) {
+  const base =
+    r.highWhen === 'qualquer' ||
+    (r.highWhen === 'todos_parte' && ev.impact !== 'Um') ||
+    (r.highWhen === 'todos' && ev.impact === 'Todos');
+  const high = base || (!!r.finance && ev.sector === 'Financeiro');
+  const idealHigh = ev.impact === 'Todos' || ev.sector === 'Financeiro';
+  return {
+    high, idealHigh, alert: high, record: !!r.protocol, protocol: !!r.protocol,
+    sector: ev.sector, responseSec: 5,
+    idealAlert: idealHigh,
+    condTxt: 'impacto ' + ev.impact + ' · ' + ev.sector + ' → ' + (high ? 'ALTA' : 'normal'),
+    actionTxt: (high ? 'alerta responsável + ' : '') + 'encaminha ' + ev.sector,
+    recordTxt: r.protocol ? 'protocolo gerado e salvo' : 'sem protocolo',
+  };
+}
+
+function decideRel(ev, r) {
+  const th = r.threshold === 'nunca' ? Infinity : Number(r.threshold);
+  const varAlert = Math.abs(ev.v) >= th;
+  const failAlert = !!r.failAlert && ev.failed;
+  const alert = varAlert || failAlert;
+  const idealAlert = ev.failed || Math.abs(ev.v) >= 10;
+  const punct = r.sendAt === '08' ? 1 : r.sendAt === '09' ? 0.6 : 0.2;
+  const audience = r.recipients === 'diretoria' ? 1 : r.recipients === 'todos' ? 0.5 : 0;
+  const delivered = !ev.failed && r.recipients !== 'ninguem';
+  return {
+    alert, idealAlert, punct, audience, delivered,
+    detected: ev.failed && !!r.failAlert,
+    record: delivered, responseSec: 0,
+    condTxt: (ev.failed ? 'fonte falhou' : 'variação ' + signed(ev.v) + '%') + ' → ' + (alert ? 'aviso' : 'só registro'),
+    actionTxt: ev.failed
+      ? (r.failAlert ? 'avisa falha (não envia dado errado)' : 'envia relatório mesmo assim')
+      : 'envia para ' + labelRecipients(r.recipients),
+    recordTxt: delivered ? 'envio registrado' : 'sem entrega registrada',
+  };
+}
+
+/* ---------- placar ---------- */
+function scoreWhats(evs) {
+  const n = evs.length;
+  if (!n) return { score: 0, parts: [], counts: {} };
+  const answered = evs.filter((e) => e.dec.responseSec != null);
+  const sla = answered.filter((e) => e.dec.responseSec <= 120).length / n;
+  const tp = evs.filter((e) => e.dec.alert && e.dec.idealAlert).length;
+  const fp = evs.filter((e) => e.dec.alert && !e.dec.idealAlert).length;
+  const fn = evs.filter((e) => !e.dec.alert && e.dec.idealAlert).length;
+  const f = f1score(tp, fp, fn);
+  const rec = evs.filter((e) => e.dec.record).length / n;
+  const transfers = evs.filter((e) => e.dec.transfer).length;
+  const idealT = evs.filter((e) => e.dec.idealTransfer).length;
+  const load = 1 - Math.min(1, Math.abs(transfers - idealT) / n);
+  return {
+    score: Math.round(40 * sla + 30 * f + 20 * rec + 10 * load),
+    parts: [
+      { label: 'Resposta em até 2 min', v: sla, w: 40 },
+      { label: 'Alertas certos (F1)', v: f, w: 30 },
+      { label: 'Conversas registradas', v: rec, w: 20 },
+      { label: 'Carga humana equilibrada', v: load, w: 10 },
+    ],
+    counts: { tp, fp, fn, transfers, idealT, answered: answered.length },
+  };
+}
+
+function scoreTri(evs) {
+  const n = evs.length;
+  if (!n) return { score: 0, parts: [], counts: {} };
+  const acc = evs.filter((e) => e.dec.high === e.dec.idealHigh).length / n;
+  const prot = evs.filter((e) => e.dec.record).length / n;
+  const tp = evs.filter((e) => e.dec.alert && e.dec.idealAlert).length;
+  const fp = evs.filter((e) => e.dec.alert && !e.dec.idealAlert).length;
+  const fn = evs.filter((e) => !e.dec.alert && e.dec.idealAlert).length;
+  const f = f1score(tp, fp, fn);
+  return {
+    score: Math.round(45 * acc + 30 * f + 25 * prot),
+    parts: [
+      { label: 'Prioridade correta', v: acc, w: 45 },
+      { label: 'Alertas certos (F1)', v: f, w: 30 },
+      { label: 'Protocolos gerados', v: prot, w: 25 },
+    ],
+    counts: { tp, fp, fn },
+  };
+}
+
+function scoreRel(evs) {
+  const n = evs.length;
+  if (!n) return { score: 0, parts: [], counts: {} };
+  const punct = avg(evs.map((e) => e.dec.punct));
+  const tp = evs.filter((e) => e.dec.alert && e.dec.idealAlert).length;
+  const fp = evs.filter((e) => e.dec.alert && !e.dec.idealAlert).length;
+  const fn = evs.filter((e) => !e.dec.alert && e.dec.idealAlert).length;
+  const f = f1score(tp, fp, fn);
+  const okDays = evs.filter((e) => !e.failed);
+  const audience = okDays.length ? avg(okDays.map((e) => e.dec.audience)) : 1;
+  const fails = evs.filter((e) => e.failed);
+  const detected = fails.filter((e) => e.dec.detected).length;
+  const failScore = fails.length ? detected / fails.length : 1;
+  const delivery = okDays.length ? okDays.filter((e) => e.dec.delivered).length / okDays.length : 1;
+  return {
+    score: Math.round(30 * punct + 25 * f + 20 * audience + 15 * failScore + 10 * delivery),
+    parts: [
+      { label: 'Relatório às 8h', v: punct, w: 30 },
+      { label: 'Avisos certos (F1)', v: f, w: 25 },
+      { label: 'Público certo', v: audience, w: 20 },
+      { label: 'Falhas detectadas', v: failScore, w: 15 },
+      { label: 'Entregas concluídas', v: delivery, w: 10 },
+    ],
+    counts: { tp, fp, fn, detected, fails: fails.length },
+  };
+}
+
+/* ---------- indicadores ---------- */
+function kpisWhats(evs) {
+  if (!evs.length) return emptyKpis();
+  const n = evs.length;
+  const answered = evs.filter((e) => e.dec.responseSec != null);
+  const avgS = answered.length ? avg(answered.map((e) => e.dec.responseSec)) : null;
+  const sla = evs.filter((e) => e.dec.responseSec != null && e.dec.responseSec <= 120).length;
+  const tp = evs.filter((e) => e.dec.alert && e.dec.idealAlert).length;
+  const fp = evs.filter((e) => e.dec.alert && !e.dec.idealAlert).length;
+  const fn = evs.filter((e) => !e.dec.alert && e.dec.idealAlert).length;
+  return [
+    { label: '1ª resposta (média)', value: fmtSec(avgS) },
+    { label: 'Dentro de 2 min', value: pctTxt(sla, n), bar: sla / n },
+    { label: 'Alertas certos', value: tp + fp ? pctTxt(tp, tp + fp) : '—', bar: tp + fp ? tp / (tp + fp) : 0 },
+    { label: 'Urgentes perdidos', value: fn, bad: fn > 0 },
+  ];
+}
+
+function kpisTri(evs) {
+  if (!evs.length) return emptyKpis();
+  const n = evs.length;
+  const acc = evs.filter((e) => e.dec.high === e.dec.idealHigh).length;
+  const prot = evs.filter((e) => e.dec.record).length;
+  const tp = evs.filter((e) => e.dec.alert && e.dec.idealAlert).length;
+  const fp = evs.filter((e) => e.dec.alert && !e.dec.idealAlert).length;
+  const fn = evs.filter((e) => !e.dec.alert && e.dec.idealAlert).length;
+  return [
+    { label: 'Prioridade correta', value: pctTxt(acc, n), bar: acc / n },
+    { label: 'Protocolos gerados', value: pctTxt(prot, n), bar: prot / n },
+    { label: 'Alertas certos', value: tp + fp ? pctTxt(tp, tp + fp) : '—', bar: tp + fp ? tp / (tp + fp) : 0 },
+    { label: 'Críticos perdidos', value: fn, bad: fn > 0 },
+  ];
+}
+
+function kpisRel(evs) {
+  if (!evs.length) return emptyKpis();
+  const punct = avg(evs.map((e) => e.dec.punct));
+  const tp = evs.filter((e) => e.dec.alert && e.dec.idealAlert).length;
+  const fp = evs.filter((e) => e.dec.alert && !e.dec.idealAlert).length;
+  const fn = evs.filter((e) => !e.dec.alert && e.dec.idealAlert).length;
+  const f = f1score(tp, fp, fn);
+  const fails = evs.filter((e) => e.failed);
+  const det = fails.filter((e) => e.dec.detected).length;
+  return [
+    { label: 'Relatórios no prazo', value: Math.round(punct * 100) + '%', bar: punct },
+    { label: 'Avisos certos', value: Math.round(f * 100) + '%', bar: f },
+    { label: 'Falhas detectadas', value: fails.length ? det + ' / ' + fails.length : '—', bad: fails.length > 0 && det < fails.length },
+    { label: 'Dias entregues', value: pctTxt(evs.filter((e) => e.dec.delivered).length, evs.filter((e) => !e.failed).length) },
+  ];
+}
+
+/* ---------- cenários ---------- */
+const SC = {
+  whatsapp: {
+    id: 'whatsapp', tab: 'Atendimento WhatsApp', icon: '💬',
+    mission: 'Uma clínica recebe 18 mensagens em uma hora. A IA já responde o que está na base. Sua missão: interromper o time só quando importa e chamar um humano só quando a IA travar.',
+    hint: 'Urgência alta é risco clínico. “A IA não sabe” é diferente de “é urgente”.',
+    total: 18, events: RAW_WHATS,
+    rules: [
+      { id: 'alertWhen', label: 'Alertar o time quando a urgência for', type: 'select', def: 'todas', ideal: 'alta',
+        options: [['todas', 'Todas as mensagens'], ['alta_normal', 'Alta ou Normal'], ['alta', 'Só Alta'], ['nunca', 'Nunca alertar']] },
+      { id: 'transferWhen', label: 'Chamar um humano quando', type: 'select', def: 'sempre', ideal: 'incerto',
+        options: [['sempre', 'Sempre'], ['incerto', 'Só quando a IA não souber'], ['nunca', 'Nunca']] },
+      { id: 'record', label: 'Registrar a conversa no histórico', type: 'toggle', def: false, ideal: true },
+    ],
+    title: (ev) => ev.name,
+    text: (ev) => '“' + ev.msg + '”',
+    alertTitle: 'Mensagem urgente',
+    alertBody: (ev) => ev.name + ': ' + ev.msg,
+    alertTag: (ev) => (ev.u === 'alta' ? 'ALTA' : ev.u === 'normal' ? 'NORMAL' : 'BAIXA'),
+    decide: decideWhats, score: scoreWhats, kpis: kpisWhats,
+  },
+  triagem: {
+    id: 'triagem', tab: 'Triagem de solicitações', icon: '🗂️',
+    mission: '16 solicitações chegam ao suporte. O financeiro atrasa o fechamento quando algo trava. Sua missão: acertar a prioridade sem afogar o time em alertas.',
+    hint: 'Financeiro tem regra própria: qualquer coisa parada lá atrasa o fechamento do mês.',
+    total: 16, events: RAW_TRI,
+    rules: [
+      { id: 'highWhen', label: 'Prioridade ALTA quando o impacto for', type: 'select', def: 'qualquer', ideal: 'todos',
+        options: [['todos', '“Todos” apenas'], ['todos_parte', '“Todos” ou “Parte”'], ['qualquer', 'Qualquer impacto'], ['nenhum', 'Nenhum (sempre normal)']] },
+      { id: 'finance', label: 'Pedidos do Financeiro são sempre críticos', type: 'toggle', def: false, ideal: true },
+      { id: 'protocol', label: 'Gerar protocolo automático', type: 'toggle', def: false, ideal: true },
+    ],
+    title: (ev) => ev.who,
+    text: (ev) => ev.sector + ': ' + ev.desc,
+    alertTitle: 'Solicitação crítica',
+    alertBody: (ev) => ev.who + ' · ' + ev.sector + ': ' + ev.desc,
+    alertTag: (ev) => 'ALTA',
+    decide: decideTri, score: scoreTri, kpis: kpisTri,
+  },
+  relatorio: {
+    id: 'relatorio', tab: 'Relatório diário', icon: '📊',
+    mission: 'A diretoria espera o fechamento às 8h. A fonte de dados falha de vez em quando. Sua missão: entregar no prazo, avisar o que importa e nunca falhar em silêncio.',
+    hint: 'Variação de 10% ou mais merece aviso separado. Falha da fonte não é “dia sem novidades”.',
+    total: 12, events: RAW_REL,
+    rules: [
+      { id: 'sendAt', label: 'Horário do envio automático', type: 'select', def: '12', ideal: '08',
+        options: [['08', '08:00'], ['09', '09:00'], ['12', '12:00']] },
+      { id: 'threshold', label: 'Avisar a diretoria quando a variação passar de', type: 'select', def: 'nunca', ideal: '10',
+        options: [['5', '5%'], ['10', '10%'], ['20', '20%'], ['nunca', 'Nunca avisar']] },
+      { id: 'recipients', label: 'Quem recebe o relatório', type: 'select', def: 'todos', ideal: 'diretoria',
+        options: [['diretoria', 'Só a diretoria'], ['todos', 'Toda a empresa'], ['ninguem', 'Ninguém']] },
+      { id: 'failAlert', label: 'Avisar quando a fonte de dados falhar', type: 'toggle', def: false, ideal: true },
+    ],
+    title: (ev) => 'Dia ' + ev.day,
+    text: (ev) => 'variação ' + signed(ev.v) + '%' + (ev.failed ? ' · fonte falhou' : ''),
+    alertTitle: 'Alerta do fechamento',
+    alertBody: (ev) => (ev.failed ? 'Fonte de dados falhou — relatório não enviado' : 'Dia ' + ev.day + ': variação ' + signed(ev.v) + '%'),
+    alertTag: (ev) => (ev.failed ? 'FALHA' : Math.abs(ev.v) >= 10 ? '10%+' : 'AVISO'),
+    decide: decideRel, score: scoreRel, kpis: kpisRel,
+  },
+};
+
+/* ---------- estado ---------- */
+const KEY_RULES = 'simulador.rules.v1';
+const KEY_BEST = 'simulador.best.v1';
+
+const state = {
+  scenarioId: 'whatsapp',
+  rules: {},
+  events: [],
+  arrived: 0,
+  processed: 0,
+  queue: [],
+  running: false,
+  paused: false,
+  finished: false,
+  auto: true,
+  speed: 1,
+  timer: null,
+  t0: 0,
+  nextAt: 0,
+  lastArrival: 0,
+  finishAt: 0,
+  nextManual: 0,
+  lastDrain: 0,
+  pauseAt: 0,
+  runRules: null,
+};
+
+function defaultRules(sc) {
+  const o = {};
+  sc.rules.forEach((r) => (o[r.id] = r.def));
+  return o;
+}
+
+function loadRules(sc) {
+  let saved = {};
+  try {
+    saved = (JSON.parse(localStorage.getItem(KEY_RULES) || '{}') || {})[sc.id] || {};
+  } catch (e) {}
+  const out = {};
+  sc.rules.forEach((r) => {
+    let v = saved[r.id];
+    if (r.type === 'select') {
+      if (!r.options.some((o) => o[0] === v)) v = r.def;
+    } else if (typeof v !== 'boolean') v = r.def;
+    out[r.id] = v;
+  });
+  return out;
+}
+
+function saveRules() {
+  try {
+    let all = {};
+    try {
+      all = JSON.parse(localStorage.getItem(KEY_RULES) || '{}') || {};
+    } catch (e) {}
+    all[state.scenarioId] = state.rules;
+    localStorage.setItem(KEY_RULES, JSON.stringify(all));
+  } catch (e) {}
+}
+
+function bestFor(id) {
+  try {
+    return (JSON.parse(localStorage.getItem(KEY_BEST) || '{}') || {})[id] || 0;
+  } catch (e) {
+    return 0;
+  }
+}
+
+function saveBest(id, v) {
+  try {
+    let all = {};
+    try {
+      all = JSON.parse(localStorage.getItem(KEY_BEST) || '{}') || {};
+    } catch (e) {}
+    if (!all[id] || v > all[id]) {
+      all[id] = v;
+      localStorage.setItem(KEY_BEST, JSON.stringify(all));
+    }
+  } catch (e) {}
+}
+
+/* ---------- controle da execução ---------- */
+function resetRun() {
+  clearInterval(state.timer);
+  state.timer = null;
+  state.running = false;
+  state.paused = false;
+  state.finished = false;
+  state.events = [];
+  state.arrived = 0;
+  state.processed = 0;
+  state.queue = [];
+  state.nextAt = 0;
+  state.lastArrival = 0;
+  state.finishAt = 0;
+  state.nextManual = 0;
+  state.lastDrain = 0;
+  state.t0 = 0;
+  $('#trace').innerHTML =
+    '<div class="empty">Clique em <b>Iniciar</b> para ver a automação rodando.<br>Os quatro blocos acendem a cada evento.</div>';
+  $('#alerts').innerHTML = '<div class="no-alert">Nenhum alerta ainda</div>';
+  $('#dirtyNote').classList.remove('show');
+  renderStats();
+  renderProgress();
+  renderQueue();
+  syncControls();
+  renderBest();
+}
+
+function startRun() {
+  if (state.finished) resetRun();
+  state.runRules = Object.assign({}, state.rules);
+  state.running = true;
+  state.paused = false;
+  state.t0 = now();
+  state.nextAt = now() + 520;
+  state.nextManual = 0;
+  state.finishAt = 0;
+  clearInterval(state.timer);
+  state.timer = setInterval(tick, 100);
+  syncControls();
+}
+
+function pauseRun() {
+  if (!state.running) return;
+  state.running = false;
+  state.paused = true;
+  state.pauseAt = now();
+  clearInterval(state.timer);
+  state.timer = null;
+  syncControls();
+}
+
+function resumeRun() {
+  if (!state.paused) return;
+  const d = now() - state.pauseAt;
+  state.nextAt += d;
+  if (state.finishAt) state.finishAt += d;
+  if (state.nextManual) state.nextManual += d;
+  state.running = true;
+  state.paused = false;
+  state.timer = setInterval(tick, 100);
+  syncControls();
+}
+
+function playPause() {
+  if (state.finished) {
+    resetRun();
+    startRun();
+  } else if (state.running) pauseRun();
+  else if (state.paused) resumeRun();
+  else startRun();
+}
+
+function tick() {
+  if (!state.running) return;
+  const t = now();
+  const sc = SC[state.scenarioId];
+  const pace = state.speed;
+
+  if (state.arrived < sc.total && t >= state.nextAt) {
+    spawn();
+    state.nextAt = t + 1500 / pace;
+  }
+
+  if (!state.auto) {
+    if (state.queue.length && t >= state.nextManual) {
+      const ev = state.queue.shift();
+      processEvent(ev, true);
+      state.nextManual = t + 5000 / pace;
+      renderQueue();
+    }
+  } else if (state.queue.length && t - state.lastDrain > 260) {
+    const ev = state.queue.shift();
+    state.lastDrain = t;
+    processEvent(ev, false);
+    renderQueue();
+  }
+
+  if (state.arrived >= sc.total) {
+    if (state.auto) {
+      if (state.processed >= state.arrived && !state.finishAt) state.finishAt = t + 1500;
+    } else if (!state.finishAt) {
+      state.finishAt = t + 6500;
+    }
+  }
+
+  if (state.finishAt && t >= state.finishAt) {
+    finish();
+    return;
+  }
+  renderProgress();
+}
+
+function spawn() {
+  const sc = SC[state.scenarioId];
+  if (state.arrived >= sc.total) return;
+  const ev = Object.assign({}, sc.events[state.arrived], { id: state.arrived + 1 });
+  state.arrived++;
+  state.lastArrival = now();
+
+  if (state.auto) {
+    processEvent(ev, false);
+  } else {
+    state.queue.push(ev);
+    if (state.queue.length === 1) state.nextManual = now() + 2200 / state.speed;
+    addLine(ev.time, 'fila', '<b>' + esc(sc.title(ev)) + '</b> entrou na fila (' + state.queue.length + 'º)');
+    renderQueue();
+  }
+  renderProgress();
+}
+
+function manualDecision() {
+  return {
+    alert: false,
+    record: false,
+    manual: true,
+    responseSec: 1020,
+    condTxt: 'sem automação',
+    actionTxt: 'fila manual',
+    recordTxt: 'nada registrado',
+  };
+}
+
+function processEvent(ev, manual) {
+  const sc = SC[state.scenarioId];
+  const dec = manual ? manualDecision() : sc.decide(ev, state.runRules || state.rules);
+  ev.dec = dec;
+  state.events.push(ev);
+  state.processed++;
+
+  if (manual) {
+    addLine(ev.time, 'fila', '<b>' + esc(sc.title(ev)) + '</b> atendido manualmente após 17 min');
+    addLine(ev.time, 'registro', 'nada registrado · nenhum alerta enviado');
+  } else {
+    addLine(ev.time, 'gatilho', '<b>' + esc(sc.title(ev)) + '</b> · ' + esc(sc.text(ev)));
+    addLine(ev.time, 'condicao', esc(dec.condTxt));
+    addLine(ev.time, 'acao', esc(dec.actionTxt));
+    addLine(ev.time, 'registro', esc(dec.recordTxt));
+    if (dec.alert) addAlert(ev, dec);
+  }
+
+  pulsePipeline(ev, dec, manual);
+  renderStats();
+  renderProgress();
+}
+
+function finish() {
+  state.running = false;
+  state.finished = true;
+  clearInterval(state.timer);
+  state.timer = null;
+  state.finishAt = 0;
+  syncControls();
+
+  const sc = SC[state.scenarioId];
+  const scored = state.events.filter((e) => !e.dec.manual);
+  const manual = state.events.filter((e) => e.dec.manual);
+
+  if (!scored.length || (manual.length && manual.length >= scored.length)) {
+    showManualResult(manual, state.queue.length);
+  } else {
+    const res = sc.score(scored);
+    saveBest(sc.id, res.score);
+    renderBest();
+    showResult(sc, res, scored, { manual: manual.length, pending: state.queue.length });
+  }
+}
+
+/* ---------- visual ---------- */
+function addLine(time, tag, html) {
+  const trace = $('#trace');
+  const empty = trace.querySelector('.empty');
+  if (empty) empty.remove();
+  const stick = trace.scrollTop + trace.clientHeight >= trace.scrollHeight - 46;
+  const el = document.createElement('div');
+  el.className = 'line';
+  el.innerHTML =
+    '<span class="ltime">' + esc(time) + '</span>' +
+    '<span class="ltag ' + tag + '">' + tag + '</span>' +
+    '<span class="ltxt">' + html + '</span>';
+  trace.appendChild(el);
+  while (trace.children.length > 160) trace.removeChild(trace.firstElementChild);
+  if (stick) trace.scrollTop = trace.scrollHeight;
+}
+
+function addAlert(ev, dec) {
+  const sc = SC[state.scenarioId];
+  const box = $('#alerts');
+  const none = box.querySelector('.no-alert');
+  if (none) none.remove();
+  const el = document.createElement('div');
+  el.className = 'alert';
+  el.innerHTML =
+    '<div class="at"><span>' + esc(sc.alertTitle) + '</span><span>' + esc(ev.time) + ' · ' + esc(sc.alertTag(ev)) + '</span></div>' +
+    '<b>' + esc(sc.title(ev)) + '</b><p>' + esc(sc.alertBody(ev)) + '</p>';
+  box.prepend(el);
+  while (box.children.length > 5) box.lastElementChild.remove();
+}
+
+function pulsePipeline(ev, dec, manual) {
+  const sc = SC[state.scenarioId];
+  const texts = manual
+    ? ['entrou na fila', 'sem automação', 'atendente humano', 'nada registrado']
+    : [sc.title(ev), dec.condTxt, dec.actionTxt, dec.recordTxt];
+  const nodes = Array.prototype.slice.call(document.querySelectorAll('#pipeline .pnode'));
+  nodes.forEach((n, i) => {
+    setTimeout(() => {
+      const b = n.querySelector('b');
+      if (b) b.textContent = texts[i];
+      n.classList.add('on');
+      setTimeout(() => n.classList.remove('on'), 360);
+    }, i * 120);
+  });
+}
+
+function renderStats() {
+  const sc = SC[state.scenarioId];
+  const scored = state.events.filter((e) => !e.dec.manual);
+  const box = $('#kpis');
+  box.innerHTML = '';
+  (scored.length ? sc.kpis(scored) : emptyKpis()).forEach((k) => {
+    const d = document.createElement('div');
+    d.className = 'kpi';
+    d.innerHTML =
+      '<div class="kh"><span>' + esc(k.label) + '</span><b class="kv' + (k.bad ? ' bad' : '') + '">' + esc(String(k.value)) + '</b></div>' +
+      (k.bar != null ? '<div class="bar"><i style="width:' + Math.round(clamp(k.bar, 0, 1) * 100) + '%"></i></div>' : '');
+    box.appendChild(d);
+  });
+  if (!scored.length) {
+    setScore(null);
+    return;
+  }
+  const res = sc.score(scored);
+  setScore(res.score, res);
+}
+
+function setScore(v, res) {
+  const ring = $('#ring');
+  const num = $('#scoreNum');
+  const msg = $('#scoreMsg');
+  if (v == null) {
+    ring.style.background = 'conic-gradient(#cbd5e1 0 0%, #e8edf2 0 100%)';
+    num.textContent = '—';
+    msg.textContent = 'ajuste as regras e inicie';
+    return;
+  }
+  const col = v >= 80 ? '#16a34a' : v >= 50 ? '#d97706' : '#dc2626';
+  ring.style.background = 'conic-gradient(' + col + ' 0 ' + v + '%, #e8edf2 ' + v + '% 100%)';
+  num.textContent = v;
+  msg.textContent = grade(v).short;
+}
+
+function renderProgress() {
+  const sc = SC[state.scenarioId];
+  $('#progressTxt').textContent = state.arrived + ' / ' + sc.total;
+  $('#progressBar').style.width = Math.round((state.arrived / sc.total) * 100) + '%';
+}
+
+function renderQueue() {
+  const sc = SC[state.scenarioId];
+  const q = state.queue.length;
+  $('#queueNum').textContent = q;
+  $('#queueBar').style.width = Math.round(clamp(q / sc.total, 0, 1) * 100) + '%';
+  $('#queueBox').classList.toggle('show', q > 0 || !state.auto);
+}
+
+function syncControls() {
+  $('#playBtn').textContent = state.running ? '⏸ Pausar' : state.paused ? '▶ Continuar' : '▶ Iniciar';
+  $('#autoBtn').classList.toggle('on', state.auto);
+  $('#autoLabel').textContent = state.auto ? 'Automação ON' : 'Automação OFF';
+  $('#speedBtn').textContent = state.speed + 'x';
+  const p = $('#runState');
+  p.className = 'pill' + (state.finished ? ' done' : state.running ? ' run' : state.paused ? ' pause' : '');
+  p.textContent = state.finished ? 'concluído' : state.running ? 'rodando' : state.paused ? 'pausado' : 'parado';
+  $('#phoneOff').classList.toggle('show', !state.auto);
+}
+
+function renderBest() {
+  const b = bestFor(state.scenarioId);
+  $('#bestTxt').innerHTML = b
+    ? 'Melhor placar neste cenário: <b>' + b + '</b>'
+    : 'Ainda sem placar neste cenário.';
+}
+
+function renderMission() {
+  const sc = SC[state.scenarioId];
+  $('#missionText').textContent = sc.mission;
+  $('#hintText').textContent = sc.hint;
+}
+
+function grade(v) {
+  if (v >= 90) return { short: 'excelente', long: 'Automação de gente grande', desc: 'Regras limpas, sem ruído. Isso está pronto para produção.' };
+  if (v >= 75) return { short: 'boa', long: 'Boa — dá para produção', desc: 'Um ou dois ajustes e o time para de ser interrompido à toa.' };
+  if (v >= 50) return { short: 'com ruído', long: 'Funciona, mas gera ruído', desc: 'A automação roda, mas ainda interrompe quem não devia ou perde o que importa.' };
+  return { short: 'rever', long: 'Volte ao mapa do processo', desc: 'O fluxo executa, mas as regras ainda não representam o processo real.' };
+}
+
+function setScenario(id) {
+  state.scenarioId = id;
+  state.rules = loadRules(SC[id]);
+  renderTabs();
+  renderRules();
+  renderMission();
+  resetRun();
+}
+
+/* ---------- regras (UI) ---------- */
+function renderTabs() {
+  const nav = $('#tabs');
+  nav.innerHTML = '';
+  Object.keys(SC).forEach((id) => {
+    const sc = SC[id];
+    const b = document.createElement('button');
+    b.className = 'tab' + (id === state.scenarioId ? ' on' : '');
+    b.dataset.scenario = id;
+    b.innerHTML = '<span aria-hidden="true">' + sc.icon + '</span>' + esc(sc.tab);
+    nav.appendChild(b);
+  });
+}
+
+function renderRules() {
+  const sc = SC[state.scenarioId];
+  const form = $('#rulesForm');
+  form.innerHTML = '';
+  sc.rules.forEach((r) => {
+    const wrap = document.createElement('div');
+    wrap.className = 'rule';
+    if (r.type === 'select') {
+      const lab = document.createElement('label');
+      lab.textContent = r.label;
+      lab.setAttribute('for', 'r-' + r.id);
+      const sel = document.createElement('select');
+      sel.id = 'r-' + r.id;
+      sel.dataset.rule = r.id;
+      r.options.forEach(([v, txt]) => {
+        const o = document.createElement('option');
+        o.value = v;
+        o.textContent = txt;
+        if (state.rules[r.id] === v) o.selected = true;
+        sel.appendChild(o);
+      });
+      wrap.appendChild(lab);
+      wrap.appendChild(sel);
+    } else {
+      const lab = document.createElement('label');
+      lab.className = 'toggle';
+      const inp = document.createElement('input');
+      inp.type = 'checkbox';
+      inp.dataset.rule = r.id;
+      inp.checked = !!state.rules[r.id];
+      const tr = document.createElement('span');
+      tr.className = 'tr';
+      tr.innerHTML = '<i></i>';
+      const tx = document.createElement('span');
+      tx.textContent = r.label;
+      lab.appendChild(inp);
+      lab.appendChild(tr);
+      lab.appendChild(tx);
+      wrap.appendChild(lab);
+    }
+    form.appendChild(wrap);
+  });
+  $('#dirtyNote').classList.remove('show');
+}
+
+function onRuleChange(e) {
+  const t = e.target;
+  const id = t && t.dataset ? t.dataset.rule : null;
+  if (!id) return;
+  state.rules[id] = t.type === 'checkbox' ? t.checked : t.value;
+  saveRules();
+  if (state.finished) resetRun();
+  $('#dirtyNote').classList.add('show');
+}
+
+/* ---------- modais ---------- */
+function openModal(html) {
+  $('#sheet').innerHTML = html;
+  $('#modal').classList.add('open');
+}
+
+function closeModal() {
+  $('#modal').classList.remove('open');
+  $('#help').classList.remove('open');
+}
+
+function showHelp() {
+  $('#help').classList.add('open');
+}
+
+function ringHtml(score) {
+  const col = score >= 80 ? '#16a34a' : score >= 50 ? '#d97706' : '#dc2626';
+  return 'background:conic-gradient(' + col + ' 0 ' + score + '%, #e8edf2 ' + score + '% 100%)';
+}
+
+function partsHtml(res) {
+  return res.parts.map((p) => {
+    const pctv = Math.round(clamp(p.v, 0, 1) * 100);
+    const pts = Math.round(p.v * p.w);
+    const col = pctv >= 80 ? '#16a34a' : pctv >= 50 ? '#d97706' : '#dc2626';
+    return (
+      '<div class="rpart">' +
+        '<span>' + esc(p.label) + '</span>' +
+        '<span class="rbar"><i style="width:' + pctv + '%;background:' + col + '"></i></span>' +
+        '<b>' + pctv + '%</b>' +
+        '<small>' + pts + '/' + p.w + '</small>' +
+      '</div>'
+    );
+  }).join('');
+}
+
+function rowsHtml(rows) {
+  return (
+    '<table><thead><tr><th>O que aconteceu</th><th style="width:34%">Resultado</th></tr></thead><tbody>' +
+    rows.map((r) => '<tr><td>' + esc(r.label) + '</td><td class="' + (r.ok ? 'ok' : 'no') + '">' + esc(String(r.value)) + '</td></tr>').join('') +
+    '</tbody></table>'
+  );
+}
+
+function insightRows(sc, res, evs, extra) {
+  const c = res.counts || {};
+  const rows = [];
+  if (sc.id === 'whatsapp') {
+    const alerts = (c.tp || 0) + (c.fp || 0);
+    rows.push({ label: 'Mensagens tratadas', value: evs.length, ok: true });
+    rows.push({ label: 'Alertas enviados ao time', value: alerts + ' de ' + evs.length, ok: alerts <= Math.ceil(evs.length * 0.45) });
+    rows.push({ label: 'Urgentes que ficaram sem alerta', value: c.fn, ok: !c.fn });
+    rows.push({ label: 'Alertas que não precisavam', value: c.fp, ok: !c.fp });
+    rows.push({ label: 'Conversas transferidas a humano', value: (c.transfers || 0) + ' (ideal ' + (c.idealT || 0) + ')', ok: c.transfers === c.idealT });
+  } else if (sc.id === 'triagem') {
+    const prot = evs.filter((e) => e.dec.record).length;
+    const correct = evs.filter((e) => e.dec.high === e.dec.idealHigh).length;
+    rows.push({ label: 'Solicitações tratadas', value: evs.length, ok: true });
+    rows.push({ label: 'Prioridade definida corretamente', value: correct + ' de ' + evs.length, ok: correct === evs.length });
+    rows.push({ label: 'Críticos que passaram batido', value: c.fn, ok: !c.fn });
+    rows.push({ label: 'Alertas desnecessários', value: c.fp, ok: !c.fp });
+    rows.push({ label: 'Protocolos gerados', value: prot + ' de ' + evs.length, ok: prot === evs.length });
+  } else {
+    const okDays = evs.filter((e) => !e.failed).length;
+    rows.push({ label: 'Dias processados', value: evs.length, ok: true });
+    rows.push({ label: 'Relatórios entregues', value: okDays + ' de ' + evs.length, ok: okDays === evs.length });
+    rows.push({ label: 'Avisos de variação dados', value: (c.tp || 0) + ' certos · ' + (c.fp || 0) + ' à toa', ok: !c.fp && !c.fn });
+    rows.push({ label: 'Falhas de fonte detectadas', value: (c.detected || 0) + ' de ' + (c.fails || 0), ok: c.detected === c.fails });
+    rows.push({ label: 'Variações relevantes ignoradas', value: c.fn, ok: !c.fn });
+  }
+  if (extra && extra.manual) rows.push({ label: 'Casos que passaram por humano', value: extra.manual, ok: true });
+  if (extra && extra.pending) rows.push({ label: 'Ficaram na fila no final', value: extra.pending, ok: false });
+  return rows;
+}
+
+function weakest(res) {
+  let w = null;
+  res.parts.forEach((p) => {
+    if (p.v < 0.999 && (!w || p.v < w.v)) w = p;
+  });
+  return w;
+}
+
+function showResult(sc, res, evs, extra) {
+  const g = grade(res.score);
+  const w = weakest(res);
+  const next = w
+    ? 'Seu ponto mais fraco agora é <b>' + esc(w.label.toLowerCase()) + '</b>. Ajuste essa regra e rode de novo — o resto já está funcionando.'
+    : 'Nada a corrigir: todas as dimensões estão no máximo. Esse fluxo poderia rodar em produção amanhã.';
+  openModal(
+    '<button class="x" data-act="close" aria-label="Fechar">×</button>' +
+    '<div class="eyebrow">Resultado · ' + esc(sc.tab) + '</div>' +
+    '<h2>' + esc(g.long) + '</h2>' +
+    '<div class="hero">' +
+      '<div class="bigring" style="' + ringHtml(res.score) + '"><span>' + res.score + '</span></div>' +
+      '<div><b>Placar do seu fluxo</b><p>' + esc(g.desc) + '</p></div>' +
+    '</div>' +
+    '<h3>Nota por critério</h3>' +
+    '<div class="parts">' + partsHtml(res) + '</div>' +
+    '<h3>O que o robô fez com ' + evs.length + ' eventos</h3>' +
+    rowsHtml(insightRows(sc, res, evs, extra)) +
+    '<h3>Próximo passo</h3>' +
+    '<p class="note" style="margin:2px 0 0;font-size:12.5px;color:#334155">' + next + '</p>' +
+    '<div class="modal-actions">' +
+      '<button class="btn ghost" data-act="defaults">Restaurar padrão</button>' +
+      '<button class="btn primary" data-act="retry">Testar de novo</button>' +
+    '</div>'
+  );
+}
+
+function showManualResult(manual, pending) {
+  const n = manual.length;
+  const mins = n * 17;
+  openModal(
+    '<button class="x" data-act="close" aria-label="Fechar">×</button>' +
+    '<div class="eyebrow">Automação desligada</div>' +
+    '<h2>Você acabou de fazer o trabalho à mão</h2>' +
+    '<div class="hero">' +
+      '<div class="bigring" style="background:conic-gradient(#94a3b8 0 100%, #e8edf2 100% 100%)"><span style="font-size:19px">OFF</span></div>' +
+      '<div><b>' + n + ' casos atendidos por uma pessoa</b><p>Cada caso levou ~17 minutos: ler, decidir, procurar o responsável, encaminhar e (talvez) registrar.</p></div>' +
+    '</div>' +
+    rowsHtml([
+      { label: 'Tempo humano gasto', value: mins + ' min' + (mins >= 60 ? ' (~' + (mins / 60).toFixed(1) + ' h)' : ''), ok: false },
+      { label: 'Alertas automáticos enviados', value: 0, ok: false },
+      { label: 'Registro do que aconteceu', value: 'nenhum', ok: false },
+      { label: 'Fila que sobrou no final', value: pending || 0, ok: false },
+      { label: 'Com automação, o mesmo dia levaria', value: 'segundos por caso', ok: true },
+    ]) +
+    '<p class="note">Sem automação, o processo não é mais lento só uma vez: ele é mais lento <b>todos os dias</b>, e cada pessoa faz de um jeito. Ligue a automação e compare o mesmo dia de trabalho.</p>' +
+    '<div class="modal-actions">' +
+      '<button class="btn ghost" data-act="close">Fechar</button>' +
+      '<button class="btn primary" data-act="auto">Ligar automação e rodar</button>' +
+    '</div>'
+  );
+}
+
+function modalAction(act) {
+  if (act === 'close') return closeModal();
+  if (act === 'defaults') {
+    state.rules = defaultRules(SC[state.scenarioId]);
+    saveRules();
+    renderRules();
+    closeModal();
+    resetRun();
+    return;
+  }
+  if (act === 'retry') {
+    closeModal();
+    resetRun();
+    startRun();
+    return;
+  }
+  if (act === 'auto') {
+    state.auto = true;
+    syncControls();
+    closeModal();
+    resetRun();
+    startRun();
+    return;
+  }
+  if (act === 'closehelp') return closeModal();
+}
+
+/* ---------- inicialização ---------- */
+function toggleAuto() {
+  state.auto = !state.auto;
+  const t = now();
+  if (state.auto) {
+    state.lastDrain = 0;
+  } else {
+    state.nextManual = t + 1200 / state.speed;
+    if (state.running) {
+      addLine('—', 'fila', '<b>Automação desligada.</b> A partir daqui, cada caso espera alguém.');
+    }
+  }
+  renderQueue();
+  syncControls();
+}
+
+function cycleSpeed() {
+  state.speed = state.speed === 1 ? 2 : state.speed === 2 ? 4 : 1;
+  syncControls();
+}
+
+function init() {
+  renderStats();
+  let saved = null;
+  try {
+    saved = localStorage.getItem('simulador.scenario.v1');
+  } catch (e) {}
+  setScenario(SC[saved] ? saved : 'whatsapp');
+
+  $('#tabs').addEventListener('click', (e) => {
+    const b = e.target.closest('[data-scenario]');
+    if (!b) return;
+    try {
+      localStorage.setItem('simulador.scenario.v1', b.dataset.scenario);
+    } catch (err) {}
+    setScenario(b.dataset.scenario);
+  });
+
+  $('#rulesForm').addEventListener('change', onRuleChange);
+
+  $('#resetRules').addEventListener('click', () => {
+    state.rules = defaultRules(SC[state.scenarioId]);
+    saveRules();
+    renderRules();
+    if (state.finished) setScore(null);
+  });
+
+  $('#tryBtn').addEventListener('click', () => {
+    if (!state.auto) {
+      state.auto = true;
+      syncControls();
+    }
+    resetRun();
+    startRun();
+  });
+
+  $('#playBtn').addEventListener('click', playPause);
+  $('#resetBtn').addEventListener('click', resetRun);
+  $('#speedBtn').addEventListener('click', cycleSpeed);
+  $('#autoBtn').addEventListener('click', toggleAuto);
+  $('#helpBtn').addEventListener('click', showHelp);
+
+  $('#modal').addEventListener('click', (e) => {
+    if (e.target.id === 'modal') return closeModal();
+    const b = e.target.closest('[data-act]');
+    if (b) modalAction(b.dataset.act);
+  });
+
+  $('#help').addEventListener('click', (e) => {
+    if (e.target.id === 'help') return closeModal();
+    const b = e.target.closest('[data-act]');
+    if (b) modalAction(b.dataset.act);
+  });
+
+  document.addEventListener('keydown', (e) => {
+    const k = e.key;
+    if (k === 'Escape') return closeModal();
+    const tag = (e.target && e.target.tagName) || '';
+    if (tag === 'SELECT' || tag === 'INPUT' || tag === 'TEXTAREA') return;
+    if (k === ' ' || k === 'Spacebar') {
+      e.preventDefault();
+      playPause();
+    } else if (k === 'r' || k === 'R') {
+      resetRun();
+    } else if (k === 'a' || k === 'A') {
+      toggleAuto();
+    } else if (k === '?' || (k === '/' && e.shiftKey)) {
+      showHelp();
+    } else if (k === '1' || k === '2' || k === '3') {
+      const id = Object.keys(SC)[Number(k) - 1];
+      if (id) {
+        try {
+          localStorage.setItem('simulador.scenario.v1', id);
+        } catch (err) {}
+        setScenario(id);
+      }
+    }
+  });
+}
+
+init();
+</script>
+</body>
+</html>
