@@ -21,6 +21,7 @@
 | `render.yaml` | Blueprint do Render com **dois** serviços: `oficina-automacao` e `triagem-ia` |
 | `oficina/README.md` | Deploy no GitHub + Render, roteiro de 15 min e limitações do free tier |
 | `ia/README.md` | Chave do Gemini, deploy, roteiro de 6–8 min, custo e limitações |
+| `brincadeiras/aprovacao.py` | Brincadeira de encerramento: "prevê" se o aluno vai passar (offline, determinístico) |
 | `exercicio/guia-do-aluno.md` | Handout do exercício (imprima ou distribua o link) |
 | `exercicio/gabarito-instrutor.md` | Solução passo a passo, rubrica e erros comuns |
 | `workflows/01-demo.json` | Workflow da demo (importar no n8n) |
@@ -200,6 +201,19 @@ contra a conta de horas/ano — e com o erro aparecendo de propósito. A narrati
 sozinho no classificador por regras e a tela avisa — a aula nunca trava.
 
 Roteiro detalhado, variáveis, custo e limitações: `ia/README.md`.
+
+---
+
+## Brincadeira de encerramento (opcional)
+
+`brincadeiras/aprovacao.py` recebe um nome e devolve um boletim fictício com veredito.
+É determinístico: o mesmo nome sempre dá o mesmo resultado — porque é um hash, não uma IA.
+
+```bash
+python brincadeiras/aprovacao.py --nome "Maria Silva"
+```
+
+Funciona offline, sem instalar nada. Uso, flags e a piada de fechamento: `brincadeiras/README.md`.
 
 ---
 

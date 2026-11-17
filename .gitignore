@@ -16,3 +16,7 @@ desktop.ini
 # Logs e temporários
 *.log
 tmp/
+
+# Python
+__pycache__/
+*.pyc
