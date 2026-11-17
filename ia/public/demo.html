@@ -1,0 +1,265 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Demo do instrutor — Triagem com IA</title>
+<meta name="description" content="Painel do instrutor: cinco mensagens prontas, cronômetro da versão humana e envio em sequência para comparar com a IA no telão.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='22' fill='%2316a34a'/%3E%3Ctext x='50' y='70' font-size='56' text-anchor='middle' fill='white' font-family='sans-serif'%3E%E2%9A%A1%3C/text%3E%3C/svg%3E">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+<header class="top">
+  <a class="brand" href="/">
+    <span class="logo">⚡</span>
+    <span><b>Demo do instrutor</b><small>5 mensagens prontas · cronômetro · reset</small></span>
+  </a>
+  <div class="top-actions">
+    <span class="badge rule" id="modeBadge"><span class="dot"></span> —</span>
+    <a class="btn ghost" href="/triagem" target="_blank" rel="noreferrer">Telão ↗</a>
+  </div>
+</header>
+
+<main class="wrap" style="max-width:860px">
+
+  <section class="hero">
+    <div class="eyebrow">Roteiro da demo · 6 a 8 minutos</div>
+    <h1>Mostre o antes e o depois.</h1>
+    <p>1) Cronometre a versão humana lendo a primeira mensagem. 2) Dispare as 5. 3) Deixe o telão aberto e mostre a conta no fim.</p>
+  </section>
+
+  <div class="stopwatch">
+    <div>
+      <div class="time" id="clock">00:00<small>.0</small></div>
+    </div>
+    <div class="hint">Cronômetro da versão humana: leia a mensagem em voz alta, classifique, escreva a resposta. Pare quando terminar.</div>
+    <div class="btns">
+      <button class="btn primary" id="swToggle">Iniciar</button>
+      <button class="btn ghost" id="swReset">Zerar</button>
+    </div>
+  </div>
+
+  <section class="card">
+    <h2>Mensagens da demo</h2>
+    <p class="small">Clique para enviar uma. O resultado aparece no telão em ~2 s e fica registrado aqui embaixo.</p>
+    <div class="demo-grid" id="samples"></div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:14px">
+      <button class="btn primary" id="sendAll">Enviar as 5 em sequência</button>
+      <button class="btn ghost" id="reset">Limpar a demo</button>
+    </div>
+    <div class="token-row" id="tokenRow" hidden>
+      <input class="input" id="token" placeholder="DEMO_TOKEN" autocomplete="off">
+      <button class="btn ghost" id="saveToken">Usar token</button>
+    </div>
+    <p class="tiny">O reset apaga as mensagens do telão. Use antes de começar e entre uma turma e outra.</p>
+  </section>
+
+  <section class="card">
+    <h2>Registro da demo</h2>
+    <p class="small" id="logHint">Nada enviado ainda.</p>
+    <div class="log" id="log"></div>
+  </section>
+
+  <section class="card">
+    <h2>O que dizer em cada mensagem</h2>
+    <div class="rows">
+      <div class="row"><span class="k">Pix sumiu</span><p class="v">“Ela achou o dinheiro, a urgência e o tom irritado. E não prometeu prazo que não existe.”</p></div>
+      <div class="row"><span class="k">Sistema caiu</span><p class="v">“Mesma regra, outro time. A categoria muda sozinha — ninguém escreveu ‘se falar sistema, é suporte’.”</p></div>
+      <div class="row"><span class="k">Cotação com prazo</span><p class="v">“Oportunidade comercial com prazo. Repare que o rascunho não inventou estoque.”</p></div>
+      <div class="row"><span class="k">Relatório para o conselho</span><p class="v">“Prazo amanhã às 9h vira prioridade alta sem ninguém marcar.”</p></div>
+      <div class="row"><span class="k">Mensagem ambígua</span><p class="v">“Aqui está o ponto: confiança baixa e a IA pergunta qual documento. Isso é maturidade, não falha.”</p></div>
+    </div>
+  </section>
+</main>
+
+<div id="toast" style="position:fixed;left:50%;bottom:22px;transform:translate(-50%,16px);background:#0b1220;color:#e2e8f0;font-size:12px;font-weight:600;padding:10px 16px;border-radius:999px;opacity:0;pointer-events:none;transition:.18s;z-index:200"></div>
+
+<script>
+'use strict';
+
+var $ = function (s) { return document.querySelector(s); };
+var state = { meta: null, busy: false, token: sessionStorage.getItem('demo-token') || '' };
+
+function toast(msg) {
+  var el = $('#toast');
+  el.textContent = msg;
+  el.style.opacity = '1';
+  el.style.transform = 'translate(-50%,0)';
+  clearTimeout(toast._t);
+  toast._t = setTimeout(function () {
+    el.style.opacity = '0';
+    el.style.transform = 'translate(-50%,16px)';
+  }, 2400);
+}
+
+function esc(v) {
+  return String(v == null ? '' : v)
+    .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+}
+
+function headers() {
+  var h = { 'content-type': 'application/json' };
+  if (state.token) h['x-demo-token'] = state.token;
+  return h;
+}
+
+function renderMode(ai) {
+  var b = $('#modeBadge');
+  if (ai.mode === 'gemini') {
+    b.className = 'badge live';
+    b.innerHTML = '<span class="dot"></span> IA real · ' + ai.model;
+  } else if (ai.mode === 'fake') {
+    b.className = 'badge live';
+    b.innerHTML = '<span class="dot"></span> modo ensaio';
+  } else {
+    b.className = 'badge rule';
+    b.innerHTML = '<span class="dot"></span> modo regra (sem chave)';
+  }
+}
+
+function renderSamples(samples) {
+  var box = $('#samples');
+  box.innerHTML = '';
+  samples.forEach(function (s) {
+    var b = document.createElement('button');
+    b.type = 'button';
+    b.className = 'sample';
+    b.dataset.sample = s.id;
+    b.innerHTML =
+      '<b>' + esc(s.label) + '</b>' +
+      '<small>' + esc(s.hint) + '</small>' +
+      '<small style="color:#64748b">“' + esc(s.text.slice(0, 78)) + '…”</small>' +
+      '<span class="go">Enviar →</span>';
+    b.addEventListener('click', function () { sendOne(s.id, b); });
+    box.appendChild(b);
+  });
+}
+
+function addLog(sample, msg) {
+  var log = $('#log');
+  var entry = document.createElement('div');
+  entry.className = 'entry';
+  var ok = msg.meta.provider === 'gemini';
+  entry.innerHTML =
+    '<span class="tag">' + esc(msg.time) + '</span>' +
+    '<span><b>' + esc(sample.label) + '</b> · ' + esc(msg.result.resumo) + '</span>' +
+    '<span class="' + (ok ? 'ok' : 'bad') + '">' +
+      (msg.meta.provider === 'gemini' ? 'IA ' : msg.meta.provider === 'fake' ? 'ensaio ' : 'regra ') +
+      (msg.meta.ms / 1000).toFixed(1).replace('.', ',') + ' s</span>';
+  log.appendChild(entry);
+  $('#logHint').textContent = log.children.length + ' mensagem(ns) enviada(s) nesta demo.';
+}
+
+async function sendOne(id, btn) {
+  if (state.busy) return;
+  state.busy = true;
+  if (btn) btn.disabled = true;
+  try {
+    var res = await fetch('/api/demo', {
+      method: 'POST',
+      headers: headers(),
+      body: JSON.stringify({ sample: id })
+    });
+    var data = await res.json();
+    if (!res.ok) throw new Error(data.error || 'Falha ao enviar');
+    var sample = state.meta.samples.find(function (s) { return s.id === id; });
+    addLog(sample || { label: id }, data.message);
+    toast('Enviada: ' + (sample ? sample.label : id));
+  } catch (e) {
+    toast(e.message);
+  } finally {
+    state.busy = false;
+    if (btn) btn.disabled = false;
+  }
+}
+
+async function sendAll() {
+  if (state.busy) return;
+  var btn = $('#sendAll');
+  btn.disabled = true;
+  for (var i = 0; i < state.meta.samples.length; i++) {
+    await sendOne(state.meta.samples[i].id, null);
+    await new Promise(function (r) { setTimeout(r, 350); });
+  }
+  btn.disabled = false;
+  toast('As 5 mensagens foram enviadas. Abra o telão.');
+}
+
+async function reset() {
+  if (!confirm('Apagar todas as mensagens do telão?')) return;
+  try {
+    var res = await fetch('/api/reset', { method: 'POST', headers: headers(), body: '{}' });
+    var data = await res.json();
+    if (!res.ok) throw new Error(data.error || 'Falha ao limpar');
+    $('#log').innerHTML = '';
+    $('#logHint').textContent = 'Nada enviado ainda.';
+    toast('Demo limpa.');
+  } catch (e) {
+    toast(e.message);
+  }
+}
+
+/* cronômetro */
+
+var sw = { t0: 0, acc: 0, running: false, timer: null };
+
+function swText() {
+  var ms = sw.acc + (sw.running ? Date.now() - sw.t0 : 0);
+  var s = Math.floor(ms / 1000);
+  var d = Math.floor((ms % 1000) / 100);
+  return String(Math.floor(s / 60)).padStart(2, '0') + ':' + String(s % 60).padStart(2, '0') + '<small>.' + d + '</small>';
+}
+
+function swRender() { $('#clock').innerHTML = swText(); }
+
+function swToggle() {
+  if (sw.running) {
+    sw.acc += Date.now() - sw.t0;
+    sw.running = false;
+    clearInterval(sw.timer);
+    $('#swToggle').textContent = 'Continuar';
+  } else {
+    sw.t0 = Date.now();
+    sw.running = true;
+    sw.timer = setInterval(swRender, 100);
+    $('#swToggle').textContent = 'Parar';
+  }
+  swRender();
+}
+
+$('#swToggle').addEventListener('click', swToggle);
+$('#swReset').addEventListener('click', function () {
+  clearInterval(sw.timer);
+  sw = { t0: 0, acc: 0, running: false, timer: null };
+  $('#swToggle').textContent = 'Iniciar';
+  swRender();
+});
+
+$('#sendAll').addEventListener('click', sendAll);
+$('#reset').addEventListener('click', reset);
+$('#saveToken').addEventListener('click', function () {
+  state.token = $('#token').value.trim();
+  sessionStorage.setItem('demo-token', state.token);
+  toast('Token salvo nesta aba.');
+});
+
+(async function boot() {
+  swRender();
+  try {
+    var res = await fetch('/api/meta');
+    var data = await res.json();
+    state.meta = data;
+    renderMode(data.stats.ai);
+    renderSamples(data.samples || []);
+    if (data.stats.ai.demoToken) {
+      $('#tokenRow').hidden = false;
+      $('#token').value = state.token;
+    }
+  } catch (e) {
+    toast('Servidor indisponível.');
+  }
+})();
+</script>
+</body>
+</html>

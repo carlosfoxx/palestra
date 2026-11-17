@@ -528,7 +528,89 @@
     <p class="small">E o mais importante: se o destino estiver fora do ar, o n8n registra a falha. <strong>Isso é o bloco 4 — o registro — que quase todo mundo esquece.</strong></p>
   </section>
 
-  <!-- 15 · ERROS -->
+  <!-- 15 · IA DIVISÓRIA -->
+  <section class="slide dark">
+    <div class="kicker">O limite da regra</div>
+    <h1 style="font-size:3.3em">Regra decide o previsível.<br><span class="accent">IA decide o ambíguo.</span></h1>
+    <p class="lead">A regra pergunta “é urgente?”. A IA lê a mensagem e entende o que está por trás — o tom, o prazo escondido, o dinheiro em risco.</p>
+    <div class="row mt">
+      <span class="chip">Regra → o que se repete</span>
+      <span class="chip blue">IA → o que varia</span>
+      <span class="chip warn">Humano → o que importa</span>
+    </div>
+    <p class="small mt" style="color:#b9c6d6">A IA não responde sozinha ao cliente: ela prepara a resposta e mostra a confiança. Quem decide continua sendo gente.</p>
+  </section>
+
+  <!-- 16 · IA A CONTA -->
+  <section class="slide">
+    <div class="kicker">O impacto em horas, não em “é legal”</div>
+    <h2>A conta que ninguém faz</h2>
+    <div class="grid-2 mt">
+      <div class="card">
+        <h3>Triagem manual</h3>
+        <table style="margin-top:.4em">
+          <tr><td>Ler e entender a mensagem</td><td style="text-align:right">1–2 min</td></tr>
+          <tr><td>Classificar e decidir a urgência</td><td style="text-align:right">1 min</td></tr>
+          <tr><td>Escrever a resposta</td><td style="text-align:right">1–2 min</td></tr>
+          <tr><td><strong>Total por mensagem</strong></td><td style="text-align:right"><strong>3–5 min</strong></td></tr>
+        </table>
+        <p class="small" style="margin:.7em 0 0">5 pessoas × 30 min por dia = <strong>2h30 por dia</strong>.<br>Em 250 dias úteis: <strong>~625 horas ≈ 78 dias de trabalho por ano</strong>.</p>
+      </div>
+      <div class="card accent-card">
+        <div class="stat">~2 s<small>por mensagem com IA</small></div>
+        <div class="big-line" style="font-size:1.5em;margin-top:.5em">Mesmo trabalho.<br><span class="accent">Tempo devolvido.</span></div>
+        <p class="small" style="margin:.5em 0 0">Custo estimado por mensagem: <strong>fração de centavo</strong> no free tier do Gemini. O gargalo deixa de ser o tempo de digitar e passa a ser a decisão.</p>
+      </div>
+    </div>
+    <div class="card mt" style="border-left:5px solid var(--warn)">
+      <p style="margin:0"><strong>O ponto:</strong> não é demitir ninguém. É tirar da pessoa 2 horas por dia de leitura e digitação para ela usar em julgamento, negociação e relacionamento.</p>
+    </div>
+  </section>
+
+  <!-- 17 · IA O QUE ELA ERRA -->
+  <section class="slide">
+    <div class="kicker">Confiança, não fé</div>
+    <h2>Ela vai errar. E está tudo bem.</h2>
+    <div class="grid-2 mt">
+      <div class="stack">
+        <div class="card accent-card">
+          <h3>O que ela faz bem</h3>
+          <ul class="check">
+            <li><span class="tick">✓</span><span>Ler e resumir em uma linha</span></li>
+            <li><span class="tick">✓</span><span>Classificar área, urgência e tom</span></li>
+            <li><span class="tick">✓</span><span>Rascunhar a resposta no tom da empresa</span></li>
+          </ul>
+        </div>
+        <div class="card warn-card">
+          <h3>Onde ela escorrega</h3>
+          <ul class="check">
+            <li><span class="cross">✕</span><span>Inventa número, prazo ou política que não existem</span></li>
+            <li><span class="cross">✕</span><span>Confunde contexto quando falta informação</span></li>
+            <li><span class="cross">✕</span><span>Erra com a mesma confiança com que acerta</span></li>
+          </ul>
+        </div>
+      </div>
+      <div class="card">
+        <h3>O antídoto: confiança visível</h3>
+        <p class="small" style="margin:.2em 0 .8em">Toda saída traz um número de 0 a 1. Abaixo de 0,7, a tela marca <strong>revisar</strong> e a mensagem vai para uma pessoa.</p>
+        <div class="ifbox" style="box-shadow:none">
+          <div class="branch"><span class="dotr"></span><span><strong>Confiança 0,32</strong> · “poderia me enviar aquele documento?”</span></div>
+          <div class="branch"><span class="dotr"></span><span>→ a IA <strong>pergunta qual documento</strong> em vez de inventar</span></div>
+          <div class="branch" style="margin-top:.5em"><span class="dotb"></span><span><strong>Confiança 0,92</strong> · “pix de 1.200 não aparece”</span></div>
+          <div class="branch"><span class="dotb"></span><span>→ financeiro, crítica, com rascunho pronto</span></div>
+        </div>
+        <div class="row mt" style="align-items:center;gap:1.2em">
+          <div class="qr">QR do app<br>de IA<br>(substituir)</div>
+          <div>
+            <p class="small" style="margin:0 0 .3em"><strong>Teste agora:</strong> escaneie e mande uma mensagem de trabalho.</p>
+            <p class="tiny" style="margin:0">Ela aparece no telão em segundos — classificada, resumida e com rascunho de resposta.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 18 · ERROS -->
   <section class="slide">
     <div class="kicker">Aprenda com o erro dos outros</div>
     <h2>5 erros que destroem uma automação</h2>
@@ -546,7 +628,7 @@
     </div>
   </section>
 
-  <!-- 16 · MATRIZ -->
+  <!-- 19 · MATRIZ -->
   <section class="slide">
     <div class="kicker">Por onde começar</div>
     <h2>Escolha pelo impacto, não pela vontade</h2>
@@ -576,7 +658,7 @@
     </div>
   </section>
 
-  <!-- 17 · MAPA -->
+  <!-- 20 · MAPA -->
   <section class="slide">
     <div class="kicker">Antes de abrir a ferramenta</div>
     <h2>20 minutos que valem mais que 2 horas de cliques</h2>
@@ -593,11 +675,16 @@
     </div>
   </section>
 
-  <!-- 18 · DIVISÓRIA EXERCÍCIO -->
+  <!-- 21 · DIVISÓRIA EXERCÍCIO -->
   <section class="slide dark">
-    <div class="kicker">Agora é com vocês</div>
-    <h1 style="font-size:3.4em">Sua vez.<br><span class="accent">12 minutos.</span></h1>
-    <p class="lead">Em duplas. Abram o link ou o QR do slide. Sem instalar nada.</p>
+    <div class="row" style="justify-content:space-between;align-items:flex-end;gap:2em">
+      <div>
+        <div class="kicker">Agora é com vocês</div>
+        <h1 style="font-size:3.2em">Sua vez.<br><span class="accent">10 minutos.</span></h1>
+        <p class="lead">Em duplas. Abram o link ou escaneiem o QR. Sem instalar nada.</p>
+      </div>
+      <div class="qr">QR da oficina<br>(substituir)</div>
+    </div>
     <div class="grid-3 mt">
       <div class="card"><h3>Missão</h3><p class="small" style="margin:0">Criem um espaço, escolham um processo e ajustem as regras. Depois: “Enviar o dia completo”.</p></div>
       <div class="card"><h3>Critério de sucesso</h3><p class="small" style="margin:0">O alerta chega quando importa, fica em silêncio quando não importa — e tudo fica registrado.</p></div>
@@ -605,7 +692,7 @@
     </div>
   </section>
 
-  <!-- 19 · PASSOS -->
+  <!-- 22 · PASSOS -->
   <section class="slide">
     <div class="kicker">Exercício · passo a passo</div>
     <h2>5 passos até o seu primeiro robô</h2>
@@ -635,7 +722,7 @@
     </div>
   </section>
 
-  <!-- 20 · COMPARTILHAR -->
+  <!-- 23 · COMPARTILHAR -->
   <section class="slide">
     <div class="kicker">Fechando o exercício</div>
     <h2>3 perguntas. 3 duplas. 45 segundos cada.</h2>
@@ -647,7 +734,7 @@
     <p class="big-line mt">A ferramenta se aprende em uma tarde.<br><span class="accent">O raciocínio é o que fica.</span></p>
   </section>
 
-  <!-- 21 · DESAFIO -->
+  <!-- 24 · DESAFIO -->
   <section class="slide">
     <div class="kicker">Desafio · 7 dias</div>
     <h2>Uma automação pequena que roda</h2>
@@ -663,7 +750,7 @@
     <p class="quote mt" style="font-size:1.6em">Não precisa ser bonito.<br><span class="accent">Precisa rodar.</span></p>
   </section>
 
-  <!-- 22 · FECHAMENTO -->
+  <!-- 25 · FECHAMENTO -->
   <section class="slide dark">
     <div class="kicker">Obrigado</div>
     <p class="quote" style="font-size:2.6em;max-width:30ch">Se é repetitivo e segue uma regra,<span class="accent">não deveria ser você fazendo.</span></p>
@@ -674,7 +761,7 @@
         <p class="small" style="margin:0">[e-mail] · [LinkedIn] · [link do guia]</p>
         <p class="small" style="margin:.6em 0 0;color:#8fa1b6">Perguntas? Vamos automatizar alguma coisa.</p>
       </div>
-      <div class="qr">QR code<br>da oficina<br>(substituir)</div>
+      <div class="qr">QR do kit<br>e dos apps<br>(substituir)</div>
     </div>
   </section>
 
@@ -682,7 +769,7 @@
 
 <div class="hud">
   <button id="prev" title="Anterior">←</button>
-  <span id="count">1 / 22</span>
+  <span id="count">1 / 25</span>
   <button id="next" title="Próximo">→</button>
 </div>
 

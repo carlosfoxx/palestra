@@ -1,0 +1,295 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Mande uma mensagem — Triagem com IA</title>
+<meta name="description" content="Demo ao vivo da palestra de automação: envie uma mensagem de trabalho e veja a IA classificar, resumir e rascunhar a resposta em segundos.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='22' fill='%2316a34a'/%3E%3Ctext x='50' y='70' font-size='56' text-anchor='middle' fill='white' font-family='sans-serif'%3E%E2%9A%A1%3C/text%3E%3C/svg%3E">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+<header class="top">
+  <a class="brand" href="/">
+    <span class="logo">⚡</span>
+    <span><b>Triagem com IA</b><small>demo ao vivo · palestra de automação</small></span>
+  </a>
+  <div class="top-actions">
+    <a class="btn ghost" href="/triagem" target="_blank" rel="noreferrer">Ver o telão ↗</a>
+  </div>
+</header>
+
+<main class="wrap">
+  <section class="hero">
+    <div class="eyebrow">Sua vez · 30 segundos</div>
+    <h1>Mande uma mensagem de trabalho.</h1>
+    <p>Escreva como você escreveria para um cliente ou colega. A IA classifica, resume e rascunha a resposta — e a sua mensagem aparece no telão.</p>
+    <div class="badge rule" id="modeBadge"><span class="dot"></span> carregando…</div>
+  </section>
+
+  <section class="card" id="formCard">
+    <h2>O que chegou na sua caixa de entrada?</h2>
+    <p class="small">Pode escrever com erros, pressa e mistura de assuntos. É assim que chega de verdade.</p>
+
+    <label class="field-label" for="name">Seu nome (ou da dupla)</label>
+    <input class="input" id="name" maxlength="40" placeholder="Ex.: Ana e Bruno" autocomplete="off">
+
+    <label class="field-label" for="text">Mensagem</label>
+    <textarea class="input" id="text" maxlength="800" rows="5"
+      placeholder="Ex.: bom dia, fiz o pagamento ontem e o pedido ainda não aparece no sistema, preciso para amanhã"></textarea>
+    <div class="counter">
+      <span class="small" id="counter">0 / 800</span>
+      <span class="small">evite dados sensíveis reais</span>
+    </div>
+
+    <div class="examples" id="examples"></div>
+
+    <button class="btn primary big" id="send" style="margin-top:14px">Enviar para a IA →</button>
+    <p class="tiny">Nada é salvo em banco: as mensagens ficam só na memória deste servidor e desaparecem quando ele reinicia. O nome e o texto aparecem no telão.</p>
+  </section>
+
+  <section class="card" id="result" hidden>
+    <div class="result-head">
+      <h2 id="resultTitle">O que a IA entendeu</h2>
+      <span class="badge rule" id="resultBadge"><span class="dot"></span> —</span>
+    </div>
+    <p class="small" id="resultSub">—</p>
+
+    <div class="rows">
+      <div class="row">
+        <span class="k">Classificação</span>
+        <div style="display:flex;gap:6px;flex-wrap:wrap">
+          <span class="pill" id="pCat">—</span>
+          <span class="pill" id="pUrg">—</span>
+          <span class="pill" id="pSen">—</span>
+        </div>
+      </div>
+      <div class="row">
+        <span class="k">Resumo em uma linha</span>
+        <p class="v" id="vResumo">—</p>
+      </div>
+      <div class="row">
+        <span class="k">Rascunho de resposta</span>
+        <p class="v draft" id="vRascunho">—</p>
+      </div>
+      <div class="row">
+        <span class="k">Próximo passo (interno)</span>
+        <p class="v" id="vPasso">—</p>
+      </div>
+    </div>
+
+    <div class="conf">
+      <span class="small" style="white-space:nowrap">Confiança</span>
+      <div class="bar"><i id="confBar" style="width:0%"></i></div>
+      <b id="confTxt">—</b>
+    </div>
+    <div class="note-warn" id="warn" hidden>
+      Confiança baixa: a IA preferiu perguntar em vez de inventar. Na prática, isso vai para uma pessoa revisar.
+    </div>
+
+    <p class="meta-line" id="metaLine">—</p>
+
+    <button class="btn ghost big" id="again" style="margin-top:12px">Enviar outra mensagem</button>
+  </section>
+
+  <section class="card">
+    <h2>O que acabou de acontecer</h2>
+    <div class="rows">
+      <div class="row"><span class="k">1 · Gatilho</span><p class="v">Você enviou um POST com a sua mensagem para o servidor.</p></div>
+      <div class="row"><span class="k">2 · Julgamento (IA)</span><p class="v">O servidor chamou o modelo com um formato fixo de saída — não é texto solto, é dado estruturado.</p></div>
+      <div class="row"><span class="k">3 · Ação</span><p class="v">Resumo, classificação e rascunho voltaram prontos para alguém aprovar.</p></div>
+      <div class="row"><span class="k">4 · Registro</span><p class="v">A mensagem entrou na fila do telão, com tempo, confiança e custo.</p></div>
+    </div>
+    <p class="tiny">A IA não responde sozinha ao cliente nesta demo: ela prepara a resposta e mostra a confiança. Quem decide continua sendo gente.</p>
+  </section>
+</main>
+
+<div id="toast" class="toast" style="position:fixed;left:50%;bottom:22px;transform:translate(-50%,16px);background:#0b1220;color:#e2e8f0;font-size:12px;font-weight:600;padding:10px 16px;border-radius:999px;opacity:0;pointer-events:none;transition:.18s;z-index:200;max-width:calc(100vw - 40px);text-align:center"></div>
+
+<script>
+'use strict';
+
+var $ = function (s) { return document.querySelector(s); };
+var state = { meta: null, sending: false };
+
+var EXAMPLES = [
+  'meu pedido não chegou e o prazo era ontem, pedido 4821. já paguei o frete',
+  'bom dia, preciso do relatório de vendas até sexta para a reunião da diretoria',
+  'oi, vocês entregam no sábado? preciso para um evento'
+];
+
+function esc(v) {
+  return String(v == null ? '' : v);
+}
+
+function toast(msg) {
+  var el = $('#toast');
+  el.textContent = msg;
+  el.style.opacity = '1';
+  el.style.transform = 'translate(-50%,0)';
+  clearTimeout(toast._t);
+  toast._t = setTimeout(function () {
+    el.style.opacity = '0';
+    el.style.transform = 'translate(-50%,16px)';
+  }, 2600);
+}
+
+function labelCat(c) {
+  return { suporte: 'Suporte', financeiro: 'Financeiro', comercial: 'Comercial', rh: 'RH', operacao: 'Operação', outro: 'Outro' }[c] || c;
+}
+function labelUrg(u) {
+  return { critica: 'Crítica', alta: 'Alta', media: 'Média', baixa: 'Baixa' }[u] || u;
+}
+function labelSen(s) {
+  return { irritado: 'Tom irritado', neutro: 'Tom neutro', satisfeito: 'Tom satisfeito' }[s] || s;
+}
+function confColor(v) {
+  if (v >= 0.8) return '#16a34a';
+  if (v >= 0.6) return '#0ea5e9';
+  if (v >= 0.4) return '#d97706';
+  return '#dc2626';
+}
+
+function renderMode(ai) {
+  var b = $('#modeBadge');
+  if (ai.mode === 'gemini') {
+    b.className = 'badge live';
+    b.innerHTML = '<span class="dot"></span> IA real · ' + ai.model;
+  } else if (ai.mode === 'fake') {
+    b.className = 'badge live';
+    b.innerHTML = '<span class="dot"></span> modo ensaio (respostas simuladas)';
+  } else {
+    b.className = 'badge rule';
+    b.innerHTML = '<span class="dot"></span> modo regra (sem chave de IA)';
+  }
+}
+
+function renderExamples() {
+  var box = $('#examples');
+  EXAMPLES.forEach(function (t) {
+    var b = document.createElement('button');
+    b.type = 'button';
+    b.textContent = t.length > 46 ? t.slice(0, 46) + '…' : t;
+    b.addEventListener('click', function () {
+      $('#text').value = t;
+      $('#text').focus();
+      updateCounter();
+    });
+    box.appendChild(b);
+  });
+}
+
+function updateCounter() {
+  $('#counter').textContent = $('#text').value.length + ' / 800';
+}
+
+function renderResult(msg) {
+  var r = msg.result;
+  var m = msg.meta;
+
+  $('#result').hidden = false;
+  $('#formCard').hidden = true;
+  $('#resultTitle').textContent = msg.name + ', o que a IA entendeu';
+  $('#resultSub').textContent = 'Sua mensagem já está na fila do telão.';
+
+  var rb = $('#resultBadge');
+  if (m.provider === 'gemini') {
+    rb.className = 'badge live';
+    rb.innerHTML = '<span class="dot"></span> IA real';
+  } else if (m.provider === 'fake') {
+    rb.className = 'badge live';
+    rb.innerHTML = '<span class="dot"></span> modo ensaio';
+  } else {
+    rb.className = 'badge rule';
+    rb.innerHTML = '<span class="dot"></span> modo regra';
+  }
+
+  var pc = $('#pCat'); pc.textContent = labelCat(r.categoria); pc.className = 'pill';
+  var pu = $('#pUrg'); pu.textContent = labelUrg(r.urgencia); pu.className = 'pill ' + r.urgencia;
+  var ps = $('#pSen'); ps.textContent = labelSen(r.sentimento); ps.className = 'pill';
+
+  $('#vResumo').textContent = r.resumo;
+  $('#vRascunho').textContent = r.rascunho;
+  $('#vPasso').textContent = r.proximo_passo;
+
+  var pct = Math.round(r.confianca * 100);
+  $('#confBar').style.width = pct + '%';
+  $('#confBar').style.background = confColor(r.confianca);
+  $('#confTxt').textContent = pct + '%';
+  $('#warn').hidden = r.confianca >= 0.7;
+
+  var cost = m.cost ? ' · US$ ' + m.cost.toFixed(5) : '';
+  var cached = m.cached ? ' · resposta reaproveitada' : '';
+  $('#metaLine').innerHTML =
+    'Processado em <b>' + (m.ms / 1000).toFixed(1).replace('.', ',') + ' s</b>' + cost + cached +
+    (m.note ? ' · ' + esc(m.note) : '');
+
+  $('#result').scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+async function send() {
+  if (state.sending) return;
+  var text = $('#text').value.trim();
+  var name = $('#name').value.trim();
+
+  if (text.length < 8) {
+    toast('Escreva pelo menos 8 caracteres.');
+    $('#text').focus();
+    return;
+  }
+
+  state.sending = true;
+  var btn = $('#send');
+  btn.disabled = true;
+  btn.textContent = 'Analisando…';
+
+  try {
+    var res = await fetch('/api/messages', {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ name: name, text: text })
+    });
+    var data = await res.json();
+    if (!res.ok) throw new Error(data.error || 'Falha ao enviar');
+    renderResult(data.message);
+  } catch (e) {
+    toast(e.message);
+  } finally {
+    state.sending = false;
+    btn.disabled = false;
+    btn.textContent = 'Enviar para a IA →';
+  }
+}
+
+$('#send').addEventListener('click', send);
+$('#text').addEventListener('input', updateCounter);
+$('#text').addEventListener('keydown', function (e) {
+  if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) send();
+});
+$('#again').addEventListener('click', function () {
+  $('#result').hidden = true;
+  $('#formCard').hidden = false;
+  $('#text').value = '';
+  updateCounter();
+  $('#text').focus();
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+});
+
+(async function boot() {
+  renderExamples();
+  updateCounter();
+  try {
+    var res = await fetch('/api/meta');
+    var data = await res.json();
+    state.meta = data;
+    renderMode(data.stats.ai);
+  } catch (e) {
+    var b = $('#modeBadge');
+    b.className = 'badge rule';
+    b.innerHTML = '<span class="dot"></span> servidor indisponível';
+  }
+})();
+</script>
+</body>
+</html>

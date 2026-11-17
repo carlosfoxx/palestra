@@ -1,0 +1,274 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Triagem ao vivo — IA</title>
+<meta name="description" content="Telão da demo de triagem com IA: o que chegou, o que a IA entregou, fila priorizada, tempo devolvido e custo estimado por mensagem.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='22' fill='%2316a34a'/%3E%3Ctext x='50' y='70' font-size='56' text-anchor='middle' fill='white' font-family='sans-serif'%3E%E2%9A%A1%3C/text%3E%3C/svg%3E">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body class="stage-body">
+
+<main class="stage">
+
+  <header class="stage-head">
+    <span class="mark">⚡</span>
+    <div>
+      <h1>Triagem ao vivo</h1>
+      <div class="sub">o que chega x o que a IA entrega</div>
+    </div>
+    <div class="right">
+      <span class="live"><i></i> ao vivo</span>
+      <span class="mode regra" id="mode">—</span>
+      <span class="clock" id="clock">--:--:--</span>
+    </div>
+  </header>
+
+  <section class="kpis">
+    <div class="kpi">
+      <span class="k">Mensagens</span>
+      <div class="v" id="kTotal">0</div>
+    </div>
+    <div class="kpi">
+      <span class="k">Tempo da IA (média)</span>
+      <div class="v" id="kAvg">—</div>
+    </div>
+    <div class="kpi">
+      <span class="k">Tempo humano equivalente</span>
+      <div class="v" id="kHuman">—</div>
+    </div>
+    <div class="kpi hl">
+      <span class="k">Tempo devolvido</span>
+      <div class="v" id="kSaved">—</div>
+    </div>
+    <div class="kpi">
+      <span class="k">Custo estimado</span>
+      <div class="v" id="kCost">—</div>
+    </div>
+  </section>
+
+  <section class="hero-card empty" id="hero">
+    <div class="empty-stage">
+      <b>Mande a primeira mensagem.</b>
+      Abra o link no celular, escreva como você escreveria para um cliente.<br>
+      Ela aparece aqui em segundos, já classificada e com resposta pronta.
+      <div class="qr-hint">O instrutor mostra o QR e o link no slide.</div>
+    </div>
+  </section>
+
+  <section class="queue-wrap">
+    <div class="queue-head">
+      <span>Fila priorizada pela IA</span>
+      <span class="count" id="qCount">—</span>
+    </div>
+    <div class="queue" id="queue"></div>
+  </section>
+
+</main>
+
+<script>
+'use strict';
+
+var $ = function (s) { return document.querySelector(s); };
+
+var CAT = { suporte: 'Suporte', financeiro: 'Financeiro', comercial: 'Comercial', rh: 'RH', operacao: 'Operação', outro: 'Outro' };
+var URG = { critica: 'Crítica', alta: 'Alta', media: 'Média', baixa: 'Baixa' };
+var SEN = { irritado: 'irritado', neutro: 'neutro', satisfeito: 'satisfeito' };
+var RANK = { critica: 0, alta: 1, media: 2, baixa: 3 };
+
+var last = { sig: null, n: 0, total: 0 };
+
+function fmtMs(ms) {
+  if (ms < 1000) return ms + ' ms';
+  return (ms / 1000).toFixed(1).replace('.', ',') + ' s';
+}
+
+function fmtMinutes(min) {
+  if (!min) return '—';
+  if (min < 60) return min + ' min';
+  var h = Math.floor(min / 60);
+  var m = Math.round(min % 60);
+  return h + ' h' + (m ? ' ' + m + ' min' : '');
+}
+
+function fmtSaved(hours) {
+  if (!hours) return '0 min';
+  if (hours < 1) return Math.round(hours * 60) + ' min';
+  return hours.toFixed(1).replace('.', ',') + ' h';
+}
+
+function fmtCost(usd) {
+  if (!usd) return '—';
+  if (usd < 0.0001) return 'US$ ' + usd.toExponential(1).replace('.', ',');
+  return 'US$ ' + usd.toFixed(4).replace('.', ',');
+}
+
+function confColor(v) {
+  if (v >= 0.8) return '#16a34a';
+  if (v >= 0.6) return '#0ea5e9';
+  if (v >= 0.4) return '#f97316';
+  return '#dc2626';
+}
+
+function renderMode(ai) {
+  var el = $('#mode');
+  if (ai.mode === 'gemini') {
+    el.className = 'mode gemini';
+    el.textContent = 'IA real · ' + ai.model;
+  } else if (ai.mode === 'fake') {
+    el.className = 'mode fake';
+    el.textContent = 'modo ensaio · respostas simuladas';
+  } else {
+    el.className = 'mode regra';
+    el.textContent = 'modo regra · sem chave de IA';
+  }
+}
+
+function renderStats(s) {
+  $('#kTotal').textContent = s.total;
+  $('#kAvg').innerHTML = s.total ? fmtMs(s.avgMs) : '—';
+  $('#kHuman').textContent = s.total ? fmtMinutes(s.humanMinutes) : '—';
+  $('#kSaved').textContent = s.total ? fmtSaved(s.savedHours) : '—';
+  $('#kCost').textContent = s.total ? fmtCost(s.costUsd) : '—';
+  renderMode(s.ai);
+}
+
+function heroHtml(m) {
+  var r = m.result;
+  var pct = Math.round(r.confianca * 100);
+  var color = confColor(r.confianca);
+  var metaBits = [];
+  metaBits.push((m.meta.ms < 1000 ? m.meta.ms + ' ms' : (m.meta.ms / 1000).toFixed(1).replace('.', ',') + ' s'));
+  if (m.meta.provider === 'gemini') metaBits.push('Gemini');
+  else if (m.meta.provider === 'fake') metaBits.push('ensaio');
+  else metaBits.push('regras');
+  if (m.meta.cost) metaBits.push('US$ ' + m.meta.cost.toFixed(5).replace('.', ','));
+  if (m.meta.cached) metaBits.push('reaproveitada');
+
+  return '' +
+    '<div class="side in">' +
+      '<div class="label">O que chegou</div>' +
+      '<div class="who"><b>' + esc(m.name) + '</b><span>' + esc(m.time) + '</span></div>' +
+      '<blockquote>' + esc(m.text) + '</blockquote>' +
+      '<div class="hero-actions">' +
+        '<span class="pill ' + r.urgencia + '">' + URG[r.urgencia] + '</span>' +
+        '<span class="pill">' + (CAT[r.categoria] || r.categoria) + '</span>' +
+        '<span class="pill">' + (SEN[r.sentimento] || r.sentimento) + '</span>' +
+      '</div>' +
+    '</div>' +
+    '<div class="side out">' +
+      '<div class="label">O que a IA entregou</div>' +
+      '<div class="hero-grid">' +
+        '<div class="cell wide"><span class="k">Resumo</span><p class="v">' + esc(r.resumo) + '</p></div>' +
+        '<div class="cell wide"><span class="k">Rascunho de resposta</span><p class="v draft">' + esc(r.rascunho) + '</p></div>' +
+        '<div class="cell"><span class="k">Próximo passo</span><p class="v">' + esc(r.proximo_passo) + '</p></div>' +
+        '<div class="cell"><span class="k">Custo / tempo</span><p class="v">' + esc(metaBits.join(' · ')) + '</p></div>' +
+      '</div>' +
+      '<div class="conf-line">' +
+        '<span class="k" style="margin:0">Confiança</span>' +
+        '<div class="bar"><i style="width:' + pct + '%;background:' + color + '"></i></div>' +
+        '<b style="color:' + color + '">' + pct + '%</b>' +
+        (r.confianca < 0.7 ? '<span class="rev">revisar</span>' : '') +
+      '</div>' +
+    '</div>';
+}
+
+function esc(v) {
+  return String(v == null ? '' : v)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;');
+}
+
+function renderQueue(messages, heroN) {
+  var box = $('#queue');
+  var rest = messages.filter(function (m) { return m.n !== heroN; });
+  rest.sort(function (a, b) {
+    var ra = RANK[a.result.urgencia];
+    var rb = RANK[b.result.urgencia];
+    var d = (ra == null ? 9 : ra) - (rb == null ? 9 : rb);
+    return d !== 0 ? d : b.n - a.n;
+  });
+  rest = rest.slice(0, 8);
+
+  $('#qCount').textContent = rest.length
+    ? rest.length + ' na fila · ' + messages.length + ' recebidas'
+    : '';
+
+  box.innerHTML = rest.map(function (m) {
+    var r = m.result;
+    return '' +
+      '<article class="qcard ' + r.urgencia + '">' +
+        '<div class="qh">' +
+          '<span class="qn">' + esc(m.name) + '</span>' +
+          '<span class="qt">' + esc(m.time) + '</span>' +
+        '</div>' +
+        '<p class="qsum">' + esc(r.resumo) + '</p>' +
+        '<div class="qcat">' + (CAT[r.categoria] || r.categoria) + ' · <b>' + URG[r.urgencia] + '</b>' +
+          (r.confianca < 0.7 ? ' · revisar' : '') +
+        '</div>' +
+      '</article>';
+  }).join('');
+}
+
+function render(data) {
+  var messages = data.messages || [];
+  var s = data.stats;
+  renderStats(s);
+
+  if (!messages.length) {
+    $('#hero').className = 'hero-card empty';
+    $('#hero').innerHTML =
+      '<div class="empty-stage">' +
+      '<b>Mande a primeira mensagem.</b>' +
+      'Abra o link no celular, escreva como você escreveria para um cliente.<br>' +
+      'Ela aparece aqui em segundos, já classificada e com resposta pronta.' +
+      '<div class="qr-hint">O instrutor mostra o QR e o link no slide.</div>' +
+      '</div>';
+    $('#queue').innerHTML = '';
+    $('#qCount').textContent = '';
+    return;
+  }
+
+  var newest = messages[messages.length - 1];
+  var hero = $('#hero');
+  hero.className = 'hero-card';
+  hero.innerHTML = heroHtml(newest);
+  renderQueue(messages, newest.n);
+}
+
+function tickClock() {
+  var d = new Date();
+  $('#clock').textContent = String(d.getHours()).padStart(2, '0') + ':' +
+    String(d.getMinutes()).padStart(2, '0') + ':' +
+    String(d.getSeconds()).padStart(2, '0');
+}
+
+async function load() {
+  try {
+    var res = await fetch('/api/messages', { cache: 'no-store' });
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    var data = await res.json();
+    var msgs = data.messages || [];
+    var lastN = msgs.length ? msgs[msgs.length - 1].n : 0;
+    var sig = data.stats.total + '|' + lastN + '|' + data.stats.ai.mode;
+
+    if (sig !== last.sig) {
+      last.sig = sig;
+      render(data);
+    }
+  } catch (e) {
+    $('#mode').className = 'mode regra';
+    $('#mode').textContent = 'sem conexão · tentando de novo';
+  }
+}
+
+tickClock();
+setInterval(tickClock, 1000);
+load();
+setInterval(load, 1500);
+</script>
+</body>
+</html>

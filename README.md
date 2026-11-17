@@ -1,9 +1,10 @@
 # Kit da palestra — Automatização de Processos na Prática
 
 **Público:** iniciantes / não técnicos
-**Duração:** 45–60 min (roteiro calibrado para 55 min, com cortes marcados)
-**Ferramenta do exercício:** oficina publicada no Render (plano A), simulador local (plano B) ou n8n
-**Formato:** 3 exemplos reais → demo ao vivo → exercício em duplas com automação real
+**Duração:** 60 min (flex 45–60; roteiro com cortes marcados)
+**Ferramentas do exercício:** oficina publicada no Render (plano A), simulador local (plano B) ou n8n
+**Demo de IA:** app separado no Render com Gemini (plano B automático: classificador por regras)
+**Formato:** 3 exemplos reais → demo de regras no n8n → demo de IA ao vivo → exercício em duplas
 
 ---
 
@@ -12,12 +13,14 @@
 | Arquivo | Para quê |
 |---|---|
 | `roteiro-palestra.md` | Roteiro minuto a minuto, com falas prontas, ações na tela e planos B |
-| `slides.html` | Deck completo. Abra com duplo clique. Navegue com ← → |
+| `slides.html` | Deck completo (25 slides). Abra com duplo clique. Navegue com ← → |
 | `simulador/index.html` | **Simulador em tempo real**: arquivo único, offline, sem instalar nada |
 | `simulador/README.md` | Como distribuir, gabarito das regras e roteiro de 12 min em aula |
 | `oficina/` | **Oficina real**: app Node com webhook público, regras no servidor, alerta externo e painel — publica no Render |
-| `render.yaml` | Blueprint do Render já apontando para `oficina/` |
+| `ia/` | **Demo de IA**: app Node separado que classifica mensagens com Gemini, resume, rascunha resposta e mostra confiança |
+| `render.yaml` | Blueprint do Render com **dois** serviços: `oficina-automacao` e `triagem-ia` |
 | `oficina/README.md` | Deploy no GitHub + Render, roteiro de 15 min e limitações do free tier |
+| `ia/README.md` | Chave do Gemini, deploy, roteiro de 6–8 min, custo e limitações |
 | `exercicio/guia-do-aluno.md` | Handout do exercício (imprima ou distribua o link) |
 | `exercicio/gabarito-instrutor.md` | Solução passo a passo, rubrica e erros comuns |
 | `workflows/01-demo.json` | Workflow da demo (importar no n8n) |
@@ -29,20 +32,22 @@
 
 ---
 
-## Agenda (55 min)
+## Agenda (60 min)
 
 | Tempo | Bloco | Slide |
 |---|---|---|
 | 0:00–0:05 | Abertura + provocação (custo do trabalho repetitivo) | 1–2 |
 | 0:05–0:12 | O que é (e o que não é) automação + anatomia | 3–4 |
-| 0:12–0:22 | 3 exemplos reais (WhatsApp 24/7, triagem, relatório) | 5–8 |
-| 0:22–0:33 | Demo ao vivo no n8n | 9–14 |
-| 0:33–0:41 | Erros comuns + como escolher a primeira automação | 15–17 |
-| 0:41–0:53 | Exercício em duplas (12 min): oficina no Render ou simulador | 18–19 |
-| 0:53–0:57 | Compartilhar resultados | 20 |
-| 0:57–1:00 | Desafio de 7 dias + fechamento | 21–22 |
+| 0:12–0:21 | 3 exemplos reais (WhatsApp 24/7, triagem, relatório) | 5–8 |
+| 0:21–0:30 | Demo ao vivo no n8n (regras) | 9–14 |
+| 0:30–0:38 | **Demo de IA ao vivo**: cronômetro, triagem e confiança | 15–17 |
+| 0:38–0:45 | Erros comuns + como escolher a primeira automação | 18–20 |
+| 0:45–0:55 | Exercício em duplas (10 min): oficina no Render ou simulador | 21–22 |
+| 0:55–0:58 | Compartilhar resultados | 23 |
+| 0:58–1:00 | Desafio de 7 dias + fechamento | 24–25 |
 
-**Se você tiver só 45 min:** corte o Case 3 (slide 8), reduza o exercício para 8 min e o compartilhar para 2 min.
+**Se você tiver só 45 min:** corte o Case 3 (slide 8), reduza a demo do n8n para 6 min, a demo de IA
+para 5 min, o exercício para 8 min e o compartilhar para 2 min.
 
 ---
 
@@ -53,6 +58,11 @@
 - [ ] Instalar/abrir o n8n e rodar a demo uma vez do início ao fim
 - [ ] Abrir `simulador/index.html`, rodar os 3 cenários e conferir o placar
 - [ ] Publicar `oficina/` no Render e abrir o link no celular (teste de verdade)
+- [ ] Criar a chave do Gemini no Google AI Studio e configurar `GEMINI_API_KEY` no serviço `triagem-ia`
+- [ ] Abrir o app de IA (`ia/`) e enviar uma mensagem real; conferir o badge **IA real**
+- [ ] Rodar `/demo` com as 5 amostras e conferir o telão `/triagem` (inclusive a mensagem ambígua)
+- [ ] Ensaiar o cronômetro: fazer a versão humana de uma mensagem em ~3 min
+- [ ] Gerar o QR do app de IA para o slide 17 (e o QR da oficina para o slide 21)
 - [ ] Rodar o "dia completo" nos 3 cenários da oficina e conferir nota 100 com as regras ideais
 - [ ] Abrir `/painel` no projetor e conferir o ranking
 - [ ] Enviar o `simulador/index.html` para você mesmo por WhatsApp/e-mail (teste real de distribuição)
@@ -67,6 +77,7 @@
 
 - [ ] n8n rodando em `http://localhost:5678`
 - [ ] Oficina aberta no projetor (`/painel`) e link/QR pronto para a turma
+- [ ] App de IA aberto em `/triagem` no projetor e `/demo` no notebook (com `DEMO_TOKEN`, se houver)
 - [ ] `simulador/index.html` aberto em outra aba (se for usar na sala)
 - [ ] Aba do webhook.site aberta e visível
 - [ ] Deck aberto (tecla `F` para tela cheia)
@@ -78,11 +89,13 @@
 1. **A demo tem prints no deck** — continue a explicação pelos slides 11–14.
 2. **Se a oficina no Render dormir**, o primeiro acesso leva ~50 s: abra o link 2 min antes e deixe
    uma aba já acordada. Se a internet cair de vez, troque para o simulador.
-3. **O exercício continua com o simulador** (`simulador/index.html`), que roda offline e não depende
+3. **Se o app de IA falhar**, ele cai sozinho no modo regra e o badge muda na tela — siga a demo.
+   Sem internet, use os slides 15–17 e o cronômetro do celular.
+4. **O exercício continua com o simulador** (`simulador/index.html`), que roda offline e não depende
    do n8n nem do Render. Cada dupla configura as regras e compara o placar.
-4. Sem computador por dupla: projete o simulador e conduza a turma por votação ("alerta em tudo ou só
+5. Sem computador por dupla: projete o simulador e conduza a turma por votação ("alerta em tudo ou só
    no urgente?"). Depois, cada dupla desenha os 4 blocos do processo que escolher.
-5. Peça a uma dupla que já usou Zapier/Make/Power Automate para contar a experiência.
+6. Peça a uma dupla que já usou Zapier/Make/Power Automate para contar a experiência.
 
 ---
 
@@ -142,14 +155,16 @@ webhook.site) e registra — com placar e painel para projetar.
 
 1. Crie um repositório vazio no GitHub e envie este kit (`git remote add origin ...` e
    `git push -u origin main`).
-2. No Render: **New → Blueprint** → conecte o repositório → **Apply**. O `render.yaml` já configura
-   `rootDir: oficina`, plano free e health check em `/healthz`.
-3. Abra o link gerado no celular, crie um espaço e clique em **Enviar o dia completo**.
-4. Gere um QR code do link para o slide 18 e deixe `/painel` aberto no projetor.
+2. No Render: **New → Blueprint** → conecte o repositório → **Apply**. O `render.yaml` cria **dois**
+   serviços: `oficina-automacao` (`rootDir: oficina`) e `triagem-ia` (`rootDir: ia`), ambos no plano
+   free e com health check em `/healthz`. Na criação, o Render pede `GEMINI_API_KEY` e `DEMO_TOKEN`.
+3. Abra o link da oficina no celular, crie um espaço e clique em **Enviar o dia completo**.
+4. Gere um QR code do link da oficina para o slide 21 e deixe `/painel` aberto no projetor.
+5. Abra o link do app de IA, envie uma mensagem e confira o badge **IA real**. Gere o QR para o slide 17.
 
 Passo a passo detalhado, API, segurança e limitações: `oficina/README.md`.
 
-### Em aula (12–15 min)
+### Em aula (10–15 min)
 
 1. **0–2 min:** projete o QR. "Abram, criem um espaço com o nome da dupla e escolham um processo."
 2. **2–5 min:** cada dupla mexe nas regras. Deixe errar de propósito.
@@ -162,6 +177,29 @@ Passo a passo detalhado, API, segurança e limitações: `oficina/README.md`.
 
 O serviço dorme após ~15 min sem acesso e acorda em ~50 s; sem disco, os espaços em memória somem em
 restart/deploy. Sessões duram 3 h. Para uso contínuo, use plano pago + disco ou um banco de dados.
+
+---
+
+## Demo de IA: o "momento uau" (ato 3)
+
+Depois de mostrar que regra resolve o previsível, o app `ia/` mostra o que a regra **não** resolve:
+a mensagem ambígua, mal escrita, com prazo escondido e tom de irritação.
+
+**O que acontece na tela:**
+
+1. Você cronometra a versão humana de uma mensagem real (~3 min).
+2. Dispara 5 mensagens prontas; a IA devolve categoria, urgência, resumo, rascunho e confiança em ~2 s.
+3. A mensagem ambígua vem com **confiança 32%** e o selo **revisar** — a IA prefere perguntar a inventar.
+4. A turma escaneia o QR, manda uma mensagem de trabalho do celular e vê a própria mensagem triada no telão.
+
+**Por que impacta:** não é "olha como a IA é legal". É a mesma tarefa, duas vezes, com cronômetro,
+contra a conta de horas/ano — e com o erro aparecendo de propósito. A narrativa fica:
+**regra para o previsível, IA para o ambíguo, humano para o que importa.**
+
+**Provedor:** Gemini (free tier), chave só em variável de ambiente no Render. Sem chave, o app cai
+sozinho no classificador por regras e a tela avisa — a aula nunca trava.
+
+Roteiro detalhado, variáveis, custo e limitações: `ia/README.md`.
 
 ---
 
@@ -178,7 +216,9 @@ O deck também abre só com duplo clique, **sem internet** — não depende de C
 
 Antes de apresentar, troque:
 
-- No `slides.html`: `[SEU NOME]`, `[EMPRESA/INSTITUIÇÃO]`, `[DATA]` (slide 1) e o bloco de contato (slide 22).
+- No `slides.html`: `[SEU NOME]`, `[EMPRESA/INSTITUIÇÃO]`, `[DATA]` (slide 1) e o bloco de contato (slide 25).
+- No `slides.html`: troque os três blocos `QR ... (substituir)` pelo QR real (app de IA no slide 17,
+  oficina no slide 21 e kit/apps no fechamento).
 - No `roteiro-palestra.md`: os trechos entre `[...]`.
 - Nos números dos cases: use os seus, se tiver. Número real > número redondo.
 
@@ -189,4 +229,7 @@ Antes de apresentar, troque:
 > Automação não é sobre substituir pessoas. É sobre tirar da pessoa aquilo que não precisa de pessoa:
 > tarefa repetitiva, baseada em regra, que não dá prazer nem aprendizado.
 
-Se a turma sair sabendo identificar **gatilho, condição, ação e registro** em qualquer processo, a palestra cumpriu o objetivo.
+> **Regra para o previsível. IA para o ambíguo. Humano para o que importa.**
+
+Se a turma sair sabendo identificar **gatilho, condição, ação e registro** em qualquer processo — e
+souber onde entra a IA e onde entra a pessoa — a palestra cumpriu o objetivo.

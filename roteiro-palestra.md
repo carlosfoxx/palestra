@@ -1,6 +1,6 @@
 # Roteiro da palestra — Automatização de Processos na Prática
 
-> **Formato:** 55 min (flex 45–60) · **Público:** iniciantes · **Demo:** n8n · **Exercício:** oficina no Render (planos B: simulador local; C: n8n)
+> **Formato:** 60 min (flex 45–60) · **Público:** iniciantes · **Demos:** n8n (regras) + triagem com IA · **Exercício:** oficina no Render (planos B: simulador local; C: n8n)
 > Legenda: 🎤 fala · 🖥️ ação na tela · ⏱️ tempo · 🅿️ plano B
 > Falas em bloco de citação são sugestões — adapte ao seu jeito de falar.
 
@@ -28,8 +28,8 @@
 
 🎤 **Promessa da sessão (30 s):**
 
-> "Em 50 minutos eu vou mostrar três automações reais, montar uma ao vivo, e no final
-> **vocês vão montar a sua** — sem escrever uma linha de código.
+> "Em 50 minutos eu vou mostrar três automações reais, montar uma ao vivo, colocar uma IA para
+> triar mensagens na frente de vocês, e no final **vocês vão montar a sua** — sem escrever uma linha de código.
 > O que eu peço é só uma coisa: pensem numa tarefa chata da rotina de vocês. Guardem ela.
 > Vamos precisar no fim."
 
@@ -78,7 +78,7 @@
 
 ---
 
-## 0:12–0:22 · Três exemplos reais
+## 0:12–0:21 · Três exemplos reais
 
 ### 0:12–0:15 · Case 1 — Atendimento no WhatsApp 24/7 (o mais impressionante)
 
@@ -108,7 +108,7 @@
 opera hoje. Usei como exemplo porque eu conheço os números por dentro — mas os outros dois casos são
 de processos comuns, que qualquer um aqui pode replicar."
 
-### 0:15–0:19 · Case 2 — Triagem de solicitações (o que a turma vai montar)
+### 0:15–0:18 · Case 2 — Triagem de solicitações (o que a turma vai montar)
 
 🖥️ Slide 7 (antes × depois).
 
@@ -128,7 +128,7 @@ de processos comuns, que qualquer um aqui pode replicar."
 
 > "Esse é o que vocês vão montar daqui a pouco. Guardem: formulário, condição, alerta, registro."
 
-### 0:19–0:22 · Case 3 — Relatório diário das 8h
+### 0:18–0:21 · Case 3 — Relatório diário das 8h
 
 🖥️ Slide 8.
 
@@ -147,7 +147,7 @@ de processos comuns, que qualquer um aqui pode replicar."
 
 ---
 
-## 0:22–0:33 · Demo ao vivo no n8n
+## 0:21–0:30 · Demo ao vivo no n8n
 
 🖥️ Slide 9 (ferramentas) — 60 s, sem se alongar.
 
@@ -161,7 +161,7 @@ de processos comuns, que qualquer um aqui pode replicar."
 
 🖥️ Slide 10 (divisória "AO VIVO"). Abra o n8n em tela cheia.
 
-### Roteiro da demo (9–10 min) — ensaie duas vezes
+### Roteiro da demo (8–9 min) — ensaie duas vezes
 
 **1. O gatilho (2 min)**
 
@@ -220,13 +220,95 @@ vezes — uma frase e siga.
 Automação (a fila manual cresce na tela) e ligue de novo (a fila drena em segundos). É a mesma lição
 da demo — com zero dependência de rede.
 
-**Transição:** "Antes de vocês colocarem a mão, cinco minutos sobre o que dá errado."
+**Transição:** "Isso é o que a regra resolve. Agora a parte que a regra não resolve."
 
 ---
 
-## 0:33–0:41 · Erros comuns e como escolher a primeira automação
+## 0:30–0:38 · IA ao vivo: o que a regra não resolve (8 min)
 
-🖥️ Slide 15 (5 erros). Leia só os títulos e comente 1 frase em cada. Não leia a lista inteira.
+🖥️ Slide 15 (divisória): **"Regra decide o previsível. IA decide o ambíguo."**
+
+🎤 **A virada:**
+
+> "Tudo o que vocês viram até agora é regra: se X, então Y. Funciona lindamente para o que se repete.
+> Mas a maior parte do trabalho não chega assim. Chega como mensagem de cliente: mal escrita, com
+> três assuntos juntos, com um prazo escondido no meio e um tom de irritação que ninguém programou.
+>
+> A regra pergunta 'é urgente?'. A IA lê a mensagem e entende **o que está por trás**: o dinheiro em
+> risco, o prazo que não foi dito com todas as letras, o cliente que já pagou e está perdendo a paciência.
+>
+> E o mais importante: a IA **não responde sozinha**. Ela prepara a resposta, mostra a confiança e
+> deixa a decisão para uma pessoa. Regra para o previsível, IA para o ambíguo, humano para o que importa."
+
+🖥️ Slide 16 (a conta). Aponte os números, não leia a tabela.
+
+> "Cinco pessoas gastando trinta minutos por dia nessa triagem são duas horas e meia por dia.
+> Em um ano, são quase **oitenta dias úteis** de trabalho. Não é 'uma coisinha legal' — é um mês e meio
+> de uma pessoa. E o custo de fazer isso com IA é uma fração de centavo por mensagem."
+
+### A demo (6 min) — o cronômetro é o argumento
+
+**1. A versão humana (2–3 min)**
+
+🖥️ Abra `/demo` no seu notebook (não no telão ainda) e **inicie o cronômetro**.
+
+🎤 Leia em voz alta a mensagem **"Pix sumiu"** e faça o trabalho na frente da turma:
+
+> "Vou fazer o que qualquer um de vocês faz: ler, decidir se é urgente, descobrir para quem mandar e
+> escrever a resposta. Podem cronometrar comigo."
+
+Classifique em voz alta, escreva uma resposta curta e **pare o cronômetro**. Deixe o número na tela.
+
+> "Quanto deu? Três minutos? Quatro? Agora imaginem isso vezes as mensagens de amanhã."
+
+**2. A mesma tarefa com IA (1 min)**
+
+🖥️ Abra `/triagem` no projetor. Volte ao `/demo` e clique em **Enviar as 5 em sequência**.
+
+🎤 Enquanto as mensagens chegam:
+
+> "Cinco mensagens. Reparem no relógio do telão: cada uma leva cerca de dois segundos. E não é só
+> classificar — ela devolve resumo, rascunho de resposta, próximo passo e confiança."
+
+**3. O que a IA entregou (1 min)**
+
+🖥️ Aponte o hero da última mensagem (a "Mensagem ambígua").
+
+> "Olha o que ela entendeu: categoria, urgência, tom, resumo em uma linha e uma resposta pronta.
+> Ninguém escreveu 'se falar pix, é financeiro'. Ela leu."
+
+**4. O momento de honestidade (1 min)**
+
+🖥️ Aponte a barra de confiança em **32%** e o selo **revisar**.
+
+> "Agora o slide mais importante da palestra: a mensagem ambígua. 'Me manda aquele documento' — qual
+> documento? A IA não inventou. Ela deu confiança baixa e **preferiu perguntar**. Isso não é falha;
+> é o que permite usar IA em trabalho de verdade. Se ela desse 95% de confiança em tudo, vocês não
+> poderiam confiar em nada."
+
+**5. A turma entra (1–2 min)**
+
+🖥️ Slide 17 (o que ela erra) — deixe o **QR do app de IA** visível.
+
+> "Agora é com vocês. Escaneiem o QR, escrevam uma mensagem de trabalho — de mentira, sem dado
+> sensível — e mandem. A mensagem de vocês vai aparecer aqui no telão."
+
+🖥️ Volte ao `/triagem` e deixe a fila enchendo. Comente **uma** mensagem da turma em voz alta.
+
+🅿️ **Se a IA falhar ao vivo:** o app cai sozinho no modo regra e o badge muda. Diga: "ela trocou para o
+plano B na frente de vocês — é assim que um sistema sério se comporta" e siga. A aula não trava.
+🅿️ **Sem internet:** use os slides 15–17 e narre a demo pelos prints. O cronômetro pode ser feito no
+celular, sem servidor.
+🅿️ **Antes de começar:** no `/demo`, clique em **Limpar a demo**; se houver `DEMO_TOKEN`, cole no campo
+e clique em **Usar token**.
+
+**Transição:** "Antes de vocês colocarem a mão, cinco minutos sobre o que dá errado — inclusive com IA."
+
+---
+
+## 0:38–0:45 · Erros comuns e como escolher a primeira automação
+
+🖥️ Slide 18 (5 erros). Leia só os títulos e comente 1 frase em cada. Não leia a lista inteira.
 
 🎤 **Os dois que mais importam:**
 
@@ -237,7 +319,7 @@ da demo — com zero dependência de rede.
 > processo morre em silêncio — e você descobre uma semana depois. Toda automação precisa de um
 > caminho de 'deu errado, avisa alguém'. É a primeira coisa que eu olho num fluxo."
 
-🖥️ Slide 16 (matriz). Peça: "Quem tem uma tarefa que é alto impacto e fácil?" — 2 respostas rápidas.
+🖥️ Slide 19 (matriz). Peça: "Quem tem uma tarefa que é alto impacto e fácil?" — 2 respostas rápidas.
 
 🎤 **Filtro dos 3 S:**
 
@@ -245,7 +327,7 @@ da demo — com zero dependência de rede.
 > Se a regra é 'depende', ainda não é automação — é julgamento humano. E julgamento humano é o
 > último lugar que a gente automatiza."
 
-🖥️ Slide 17 (mapa em 20 min).
+🖥️ Slide 20 (mapa em 20 min).
 
 🎤 **O passo que todo mundo pula:**
 
@@ -258,7 +340,7 @@ da demo — com zero dependência de rede.
 
 ---
 
-## 0:41–0:53 · Exercício em duplas (12 min)
+## 0:45–0:55 · Exercício em duplas (10 min)
 
 > **Qual exercício usar?** O **plano A é a oficina publicada no Render** (`oficina/`): a turma abre um
 > link ou QR, cria um espaço e recebe eventos por um webhook real, com regras no servidor e placar.
@@ -266,11 +348,11 @@ da demo — com zero dependência de rede.
 > offline, mesmas regras e mesmo placar. O **plano C é o n8n**, para quando a sala já tem a ferramenta
 > e você quer mostrar os nós reais. O raciocínio cobrado é o mesmo: gatilho → condição → ação → registro.
 
-🖥️ Slide 18 (briefing).
+🖥️ Slide 21 (briefing).
 
 🎤 **Instruções — fale devagar e repita o critério de sucesso:**
 
-> "Em duplas, doze minutos. Abram o link que está no slide (ou o QR). Criem um espaço com o nome da
+> "Em duplas, dez minutos. Abram o link que está no slide (ou o QR). Criem um espaço com o nome da
 > dupla e escolham um processo: atendimento, triagem ou relatório.
 >
 > Missão: ajustar as regras de um processo real e ver o robô decidindo de verdade. A cada evento, o
@@ -284,8 +366,8 @@ da demo — com zero dependência de rede.
 > O guia está com vocês. Eu vou passar nas duplas. Não me chamem antes de rodar uma vez — o erro faz
 > parte."
 
-🖥️ Slide 19 (5 passos) fica no telão. Deixe o **link/QR visível** e o **painel da turma** (`/painel`)
-aberto em outra aba para projetar no fim. Se estiver no simulador, deixe-o projetado e use o slide 19
+🖥️ Slide 22 (5 passos) fica no telão. Deixe o **link/QR visível** e o **painel da turma** (`/painel`)
+aberto em outra aba para projetar no fim. Se estiver no simulador, deixe-o projetado e use o slide 22
 só como referência.
 
 🎤 **Enquanto circula (não fique no palco):**
@@ -305,9 +387,9 @@ desenhe os 4 blocos + a regra + o "deu erro, avisa quem".
 
 ---
 
-## 0:53–0:57 · Compartilhar
+## 0:55–0:58 · Compartilhar
 
-🖥️ Slide 20.
+🖥️ Slide 23.
 
 🎤 **Três perguntas, três duplas, uma resposta cada (máx. 45 s por pessoa):**
 
@@ -326,9 +408,9 @@ ou três nomes e peça a explicação da **regra**, não da nota.
 
 ---
 
-## 0:57–1:00 · Desafio e fechamento
+## 0:58–1:00 · Desafio e fechamento
 
-🖥️ Slide 21 (desafio 7 dias).
+🖥️ Slide 24 (desafio 7 dias).
 
 🎤 **Desafio:**
 
@@ -338,7 +420,7 @@ ou três nomes e peça a explicação da **regra**, não da nota.
 > Não precisa ser bonito. Precisa rodar. **Uma automação pequena que roda vale mais do que um plano
 > grande que não sai do papel.**"
 
-🖥️ Slide 22 (fechamento).
+🖥️ Slide 25 (fechamento).
 
 🎤 **Frase final (desacelere, faça silêncio antes):**
 
@@ -366,3 +448,6 @@ não necessariamente posto — e quem sabe desenhar processos passa a valer mais
 | "E a LGPD?" | "Automação não muda a regra: dado pessoal continua precisando de base legal, acesso mínimo e registro. O ponto de atenção é não espalhar dado sensível em ferramenta sem controle." |
 | "Isso vai acabar com meu emprego?" | "Vai acabar com a tarefa repetitiva. Quem desenha processo e sabe usar a ferramenta fica mais valioso. O risco real é ficar fazendo à mão o que já dá para automatizar." |
 | "Qual ferramenta eu escolho?" | "A que já está no ecossistema da empresa (Microsoft → Power Automate; Google → Apps Script; time técnico → n8n). Ferramenta é detalhe; processo é o difícil." |
+| "E quando a IA erra?" | "Ela vai errar — por isso toda saída traz um nível de confiança e um caminho de revisão humana. Nunca use IA sem um 'quem confere isso?' definido." |
+| "Quanto custa a IA?" | "Para testar, o free tier do Gemini resolve. Por mensagem, é fração de centavo. O custo real é revisão, governança e o tempo de ajustar o formato de saída." |
+| "Posso mandar dado de cliente para a IA?" | "Só se a política da empresa e a LGPD permitirem. Prefira anonimizar, use provedor com contrato de tratamento e evite dado sensível no que é só demonstração." |

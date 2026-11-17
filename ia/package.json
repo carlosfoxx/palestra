@@ -1,0 +1,15 @@
+{
+  "name": "triagem-ia",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Demo ao vivo: mensagens de trabalho classificadas por IA, com resumo, rascunho de resposta e confiança.",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node server.js"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "license": "MIT"
+}

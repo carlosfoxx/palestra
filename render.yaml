@@ -12,3 +12,34 @@ services:
     envVars:
       - key: NODE_VERSION
         value: 20.11.1
+
+  - type: web
+    name: triagem-ia
+    runtime: node
+    plan: free
+    region: oregon
+    rootDir: ia
+    buildCommand: npm install --omit=dev
+    startCommand: npm start
+    healthCheckPath: /healthz
+    autoDeploy: true
+    envVars:
+      - key: NODE_VERSION
+        value: 20.11.1
+      # Chave do Google AI Studio (Gemini). Preencha no painel do Render;
+      # nunca comite a chave no repositório.
+      - key: GEMINI_API_KEY
+        sync: false
+      - key: GEMINI_MODEL
+        value: gemini-2.5-flash
+      # auto = usa Gemini se houver chave, senão cai nas regras.
+      - key: IA_PROVIDER
+        value: auto
+      # Opcional: protege /demo e /api/reset com um token. Deixe vazio para aula aberta.
+      - key: DEMO_TOKEN
+        sync: false
+      # Teto de mensagens da aula e limite por aparelho/minuto.
+      - key: MAX_TOTAL
+        value: "600"
+      - key: RATE_PER_MIN
+        value: "12"
