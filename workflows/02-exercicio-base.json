@@ -1,0 +1,92 @@
+{
+  "name": "EXERCICIO - base (comece aqui)",
+  "nodes": [
+    {
+      "parameters": {
+        "content": "## EXERCICIO — Robo de triagem\n\n**Missao:** formulario → protocolo → classifica impacto → alerta o responsavel em menos de 5s.\n\n### Seu roteiro\n1. **2. Protocolo** — Edit Fields com `protocolo` = `{{ 'SOL-' + $now.format('yyyyMMdd-HHmmss') }}`\n2. **3. E urgente?** — If: `Impacto` igual a `Todos`\n3. **3a. Alta** — prioridade `Alta`, prazo `1 hora`\n4. **3b. Normal** — prioridade `Normal`, prazo `24 horas`\n5. **4. Alerta** — HTTP POST para a SUA URL do webhook.site\n\n---\n**Lembre-se:** ligue *Include Other Input Fields* em todo Edit Fields.\n**Teste:** botao *Execute workflow*, nao *Execute step*.",
+        "height": 460,
+        "width": 420,
+        "color": 5
+      },
+      "id": "e0000000-0000-4000-8000-000000000000",
+      "name": "Instrucoes",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [-560, -200]
+    },
+    {
+      "parameters": {
+        "formTitle": "Solicitacao de suporte",
+        "formDescription": "Preencha os dados abaixo. O responsavel sera avisado automaticamente.",
+        "formFields": {
+          "values": [
+            {
+              "fieldLabel": "Solicitante",
+              "fieldType": "text",
+              "requiredField": true
+            },
+            {
+              "fieldLabel": "Setor",
+              "fieldType": "dropdown",
+              "fieldOptions": {
+                "values": [
+                  {
+                    "option": "Financeiro"
+                  },
+                  {
+                    "option": "Comercial"
+                  },
+                  {
+                    "option": "Suporte"
+                  }
+                ]
+              },
+              "requiredField": true
+            },
+            {
+              "fieldLabel": "Descricao",
+              "fieldType": "textarea",
+              "requiredField": true
+            },
+            {
+              "fieldLabel": "Impacto",
+              "fieldType": "dropdown",
+              "fieldOptions": {
+                "values": [
+                  {
+                    "option": "Todos"
+                  },
+                  {
+                    "option": "Parte"
+                  },
+                  {
+                    "option": "Um"
+                  }
+                ]
+              },
+              "requiredField": true
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "e1000000-0000-4000-8000-000000000001",
+      "name": "1. Formulario",
+      "type": "n8n-nodes-base.formTrigger",
+      "typeVersion": 2.2,
+      "position": [0, 0],
+      "webhookId": "e1000000-0000-4000-8000-00000000beef"
+    }
+  ],
+  "pinData": {},
+  "connections": {},
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "e0000000-0000-4000-8000-00000000bb01",
+  "meta": {
+    "templateCredsSetupCompleted": true
+  },
+  "tags": []
+}

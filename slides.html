@@ -1,0 +1,734 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Automatize o chato — Automação de Processos na Prática</title>
+<style>
+  :root{
+    --ink:#0b1220;
+    --muted:#5b6779;
+    --bg:#f5f7f9;
+    --card:#ffffff;
+    --line:#e3e8ee;
+    --accent:#16a34a;
+    --accent-soft:#e8f7ee;
+    --blue:#0ea5e9;
+    --blue-soft:#e6f5fd;
+    --warn:#f59e0b;
+    --warn-soft:#fef4e2;
+    --dark:#0b1220;
+    --radius:18px;
+    --shadow:0 10px 30px rgba(11,18,32,.07);
+  }
+  *{box-sizing:border-box}
+  html,body{height:100%}
+  body{
+    margin:0;overflow:hidden;background:var(--bg);color:var(--ink);
+    font-family:"Segoe UI",system-ui,-apple-system,"Helvetica Neue",Arial,sans-serif;
+    -webkit-font-smoothing:antialiased;
+  }
+
+  /* ---------- deck ---------- */
+  #deck{position:relative;height:100vh;height:100dvh;width:100vw}
+  .slide{
+    position:absolute;inset:0;display:none;flex-direction:column;justify-content:center;
+    padding:clamp(22px,4.2vw,64px) clamp(26px,5.2vw,84px);
+    font-size:clamp(13px,1.02vw + 4px,21px);
+    line-height:1.45;overflow:hidden;
+  }
+  .slide.active{display:flex;animation:enter .32s cubic-bezier(.22,.61,.36,1)}
+  @keyframes enter{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
+  .slide.dark{background:radial-gradient(120% 120% at 10% 0%,#16243b 0%,var(--dark) 55%);color:#eef3f8}
+  .slide.dark .kicker{color:#4ade80}
+  .slide.dark .lead,.slide.dark p.sub{color:#b9c6d6}
+
+  /* ---------- type ---------- */
+  .kicker{
+    font-size:.72em;font-weight:800;letter-spacing:.16em;text-transform:uppercase;
+    color:var(--accent);margin-bottom:.9em;
+  }
+  h1{font-size:3.1em;line-height:1.04;margin:.1em 0 .35em;letter-spacing:-.03em;font-weight:800}
+  h2{font-size:1.95em;line-height:1.12;margin:0 0 .65em;letter-spacing:-.02em;font-weight:800}
+  h3{font-size:1.06em;margin:0 0 .35em;font-weight:750;letter-spacing:-.01em}
+  p{margin:0 0 .75em}
+  .lead{font-size:1.22em;color:var(--muted);max-width:32ch;line-height:1.4}
+  .small{font-size:.82em;color:var(--muted)}
+  .tiny{font-size:.72em;color:var(--muted)}
+  .accent{color:var(--accent)}
+  .muted{color:var(--muted)}
+  strong{font-weight:750}
+
+  /* ---------- layout ---------- */
+  .grid-2{display:grid;grid-template-columns:1fr 1fr;gap:1.6em;align-items:start}
+  .grid-3{display:grid;grid-template-columns:repeat(3,1fr);gap:1.1em}
+  .stack{display:flex;flex-direction:column;gap:.7em}
+  .row{display:flex;align-items:center;gap:.7em;flex-wrap:wrap}
+  .space{flex:1}
+  .mt{margin-top:1.2em}
+  .card{
+    background:var(--card);border:1px solid var(--line);border-radius:var(--radius);
+    padding:1.1em 1.25em;box-shadow:var(--shadow);
+  }
+  .card.accent-card{border-left:5px solid var(--accent)}
+  .card.blue-card{border-left:5px solid var(--blue)}
+  .card.warn-card{border-left:5px solid var(--warn)}
+  .dark .card{background:#13203a;border-color:#22334f;box-shadow:none}
+
+  /* ---------- cover ---------- */
+  .cover h1{font-size:4.5em}
+  .cover .lead{font-size:1.35em;max-width:24ch;color:#c3cfdd}
+  .cover-meta{margin-top:2.2em;font-size:.9em;color:#8fa1b6;display:flex;gap:1.4em;flex-wrap:wrap}
+  .hint{position:absolute;right:clamp(26px,5.2vw,84px);bottom:5.5em;font-size:.72em;color:#6b7d93}
+
+  /* ---------- numbers ---------- */
+  .stat{font-size:3.5em;font-weight:850;letter-spacing:-.04em;line-height:1;color:var(--accent)}
+  .stat small{display:block;font-size:.26em;letter-spacing:0;font-weight:600;color:var(--muted);margin-top:.7em}
+  .big-line{font-size:2.35em;font-weight:800;line-height:1.12;letter-spacing:-.025em;margin:.15em 0 .5em}
+
+  /* ---------- flow ---------- */
+  .flow{display:flex;align-items:stretch;gap:.55em;flex-wrap:wrap;margin:.4em 0}
+  .node{
+    background:var(--card);border:1px solid var(--line);border-radius:14px;
+    padding:.7em .9em;min-width:0;flex:1 1 0;box-shadow:var(--shadow);
+  }
+  .node .tag{font-size:.62em;font-weight:800;letter-spacing:.12em;text-transform:uppercase;color:var(--accent);display:block;margin-bottom:.3em}
+  .node b{display:block;font-size:.92em;line-height:1.2}
+  .node span.d{display:block;font-size:.72em;color:var(--muted);margin-top:.25em}
+  .arrow{display:flex;align-items:center;color:#a9b6c6;font-size:1.2em;font-weight:700;flex:0 0 auto}
+  .dark .node{background:#152440;border-color:#26395a;box-shadow:none}
+
+  .chip{
+    display:inline-flex;align-items:center;gap:.45em;background:var(--accent-soft);color:#0f6b32;
+    border:1px solid #c9ecd6;border-radius:999px;padding:.32em .8em;font-size:.78em;font-weight:700;
+  }
+  .chip.blue{background:var(--blue-soft);color:#075e83;border-color:#c4e9f8}
+  .chip.gray{background:#eef1f5;color:#44536a;border-color:#e0e5ec}
+  .chip.warn{background:var(--warn-soft);color:#8a5800;border-color:#f6dfae}
+
+  /* ---------- checklist ---------- */
+  .check{list-style:none;padding:0;margin:0;display:flex;flex-direction:column;gap:.55em}
+  .check li{display:flex;gap:.6em;align-items:flex-start;font-size:.95em}
+  .check .box{
+    flex:0 0 auto;width:1.15em;height:1.15em;border-radius:6px;border:2px solid #b9c5d4;
+    margin-top:.12em;
+  }
+  .cross{color:#dc2626;font-weight:800}
+  .tick{color:var(--accent);font-weight:800}
+
+  /* ---------- table ---------- */
+  table{width:100%;border-collapse:collapse;font-size:.85em}
+  th,td{text-align:left;padding:.62em .7em;border-bottom:1px solid var(--line);vertical-align:top}
+  th{font-size:.78em;text-transform:uppercase;letter-spacing:.08em;color:var(--muted)}
+  tr:last-child td{border-bottom:0}
+  td b{font-weight:750}
+
+  /* ---------- form mock ---------- */
+  .mock{
+    background:#fff;border:1px solid var(--line);border-radius:16px;overflow:hidden;
+    box-shadow:0 18px 44px rgba(11,18,32,.12);max-width:30em;
+  }
+  .mock-top{background:#101a2e;color:#dbe5f1;font-size:.66em;padding:.5em .9em;display:flex;gap:.5em;align-items:center}
+  .dot{width:.55em;height:.55em;border-radius:50%;background:#3d4c63;display:inline-block}
+  .mock-body{padding:1.05em 1.15em}
+  .field{margin-bottom:.7em}
+  .field label{display:block;font-size:.68em;font-weight:700;color:#44536a;margin-bottom:.25em}
+  .input{
+    border:1px solid #d6dee8;border-radius:8px;padding:.5em .65em;font-size:.78em;color:#26344a;
+    background:#fbfcfe;min-height:2.1em;display:flex;align-items:center;
+  }
+  .input.area{min-height:3.4em;align-items:flex-start;padding-top:.5em}
+  .mock-btn{background:var(--accent);color:#fff;text-align:center;border-radius:9px;padding:.62em;font-weight:750;font-size:.8em}
+  .selects{display:flex;gap:.45em}
+  .selects .pill{border:1px solid #d6dee8;border-radius:999px;padding:.25em .7em;font-size:.72em;color:#44536a;background:#fbfcfe}
+  .selects .pill.on{background:var(--accent-soft);border-color:#8fd9ab;color:#0f6b32;font-weight:750}
+
+  /* ---------- if mock ---------- */
+  .ifbox{border:1px solid var(--line);border-radius:14px;padding:.9em 1em;background:#fff;box-shadow:var(--shadow)}
+  .ifbox .cond{font-family:ui-monospace,SFMono-Regular,Consolas,monospace;font-size:.82em;background:#0f172a;color:#a7f3d0;padding:.6em .8em;border-radius:9px;display:inline-block}
+  .branch{display:flex;align-items:center;gap:.6em;margin-top:.75em;font-size:.85em}
+  .branch .dotb{width:.6em;height:.6em;border-radius:50%;background:var(--accent);flex:0 0 auto}
+  .branch .dotr{width:.6em;height:.6em;border-radius:50%;background:#94a3b8;flex:0 0 auto}
+  pre{
+    margin:0;background:#0f172a;color:#d7e3f4;border-radius:12px;padding:.85em 1em;
+    font-family:ui-monospace,SFMono-Regular,Consolas,monospace;font-size:.78em;line-height:1.5;overflow:auto;
+  }
+  pre .k{color:#7dd3fc}
+  pre .s{color:#86efac}
+  pre .c{color:#64748b}
+
+  /* ---------- matrix ---------- */
+  .matrix{display:grid;grid-template-columns:1fr 1fr;grid-template-rows:1fr 1fr;gap:.6em;max-width:34em}
+  .quad{border:1px solid var(--line);border-radius:14px;padding:.85em;background:#fff;min-height:6.2em}
+  .quad b{display:block;font-size:.85em;margin-bottom:.2em}
+  .quad span{font-size:.72em;color:var(--muted)}
+  .quad.hot{background:var(--accent-soft);border-color:#9fdcb6;box-shadow:0 0 0 3px #d9f2e3 inset}
+  .axis{font-size:.66em;color:var(--muted);text-transform:uppercase;letter-spacing:.1em}
+
+  /* ---------- hud ---------- */
+  #bar{position:fixed;top:0;left:0;height:4px;width:100%;background:transparent;z-index:50}
+  #bar i{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--accent),var(--blue));transition:width .25s ease}
+  .hud{
+    position:fixed;right:18px;bottom:14px;display:flex;align-items:center;gap:.4em;z-index:50;
+    background:rgba(11,18,32,.82);color:#fff;border-radius:999px;padding:.3em .45em;
+    font-size:12px;backdrop-filter:blur(6px);
+  }
+  .hud button{
+    all:unset;cursor:pointer;width:26px;height:26px;border-radius:50%;display:grid;place-items:center;
+    color:#fff;font-size:14px;
+  }
+  .hud button:hover{background:rgba(255,255,255,.16)}
+  .hud #count{min-width:52px;text-align:center;font-variant-numeric:tabular-nums;letter-spacing:.03em}
+
+  /* ---------- misc ---------- */
+  .quote{font-size:1.85em;font-weight:800;line-height:1.22;letter-spacing:-.02em;max-width:26ch}
+  .quote .accent{display:block}
+  .badge{display:inline-block;background:#0f172a;color:#4ade80;border-radius:999px;padding:.25em .8em;font-size:.68em;font-weight:800;letter-spacing:.1em;text-transform:uppercase}
+  .hr{height:1px;background:var(--line);margin:1.1em 0}
+  .qr{
+    width:9.5em;height:9.5em;border-radius:14px;border:1px dashed #8fa1b6;display:grid;place-items:center;
+    color:#8fa1b6;font-size:.7em;text-align:center;padding:1em;
+  }
+
+  @media (max-width:760px){
+    h1{font-size:2.3em}.cover h1{font-size:3em}.grid-2{grid-template-columns:1fr}
+    .grid-3{grid-template-columns:1fr}.matrix{grid-template-columns:1fr}
+    .flow{flex-direction:column}.arrow{transform:rotate(90deg);justify-content:center}
+  }
+
+  /* ---------- print (A4 landscape) ---------- */
+  @media print{
+    @page{size:A4 landscape;margin:0}
+    body{overflow:visible;background:#fff}
+    #bar,.hud,.hint{display:none!important}
+    #deck{height:auto;width:auto}
+    .slide{
+      display:flex!important;position:relative;inset:auto;
+      width:297mm;height:167mm;break-after:page;page-break-after:always;
+      animation:none;padding:14mm 18mm;font-size:12.5pt;
+    }
+    .slide:last-child{break-after:auto;page-break-after:auto}
+    .card,.node,.mock,.ifbox,.quad{box-shadow:none}
+  }
+</style>
+</head>
+<body>
+
+<div id="bar"><i></i></div>
+
+<main id="deck">
+
+  <!-- 1 · CAPA -->
+  <section class="slide dark cover">
+    <div class="kicker">Palestra · 50 minutos · do zero ao primeiro fluxo</div>
+    <h1>Automatize<br>o chato.</h1>
+    <p class="lead">Exemplos reais e práticos de automação de processos — e uma automação nas suas mãos no final.</p>
+    <div class="cover-meta">
+      <span><strong>[SEU NOME]</strong></span>
+      <span>[EMPRESA / INSTITUIÇÃO]</span>
+      <span>[DATA]</span>
+    </div>
+    <div class="hint">← → para navegar · F para tela cheia</div>
+  </section>
+
+  <!-- 2 · PROVOCAÇÃO -->
+  <section class="slide">
+    <div class="kicker">A conta que ninguém faz</div>
+    <h2>Quanto custa o trabalho repetitivo?</h2>
+    <div class="grid-3 mt">
+      <div class="card accent-card">
+        <div class="stat">10 min<small>por dia</small></div>
+        <p class="small mt">= <strong>44 horas por ano</strong><br>quase 6 dias úteis</p>
+      </div>
+      <div class="card accent-card">
+        <div class="stat">30 min<small>por dia</small></div>
+        <p class="small mt">= <strong>132 horas por ano</strong><br>mais de 3 semanas de trabalho</p>
+      </div>
+      <div class="card accent-card">
+        <div class="stat">1 h<small>por dia</small></div>
+        <p class="small mt">= <strong>264 horas por ano</strong><br>um mês e meio de expediente</p>
+      </div>
+    </div>
+    <p class="big-line mt">Você não está sem tempo.<br><span class="accent">Está com tempo agendado para tarefas que não precisam de você.</span></p>
+  </section>
+
+  <!-- 3 · O QUE É / NÃO É -->
+  <section class="slide">
+    <div class="kicker">Desfazendo o mito</div>
+    <h2>Automação não é o que você está pensando</h2>
+    <div class="grid-2 mt">
+      <div class="card">
+        <h3 style="color:#b91c1c">Não é…</h3>
+        <ul class="check">
+          <li><span class="cross">×</span><span>Um robô com IA que pensa por você</span></li>
+          <li><span class="cross">×</span><span>Substituir pessoas</span></li>
+          <li><span class="cross">×</span><span>Projeto de seis meses</span></li>
+          <li><span class="cross">×</span><span>Só para empresa grande</span></li>
+          <li><span class="cross">×</span><span>Precisa saber programar</span></li>
+        </ul>
+      </div>
+      <div class="card accent-card">
+        <h3 style="color:#15803d">É…</h3>
+        <ul class="check">
+          <li><span class="tick">✓</span><span>Uma regra escrita <strong>uma vez</strong> e executada <strong>sempre</strong></span></li>
+          <li><span class="tick">✓</span><span>Cola entre sistemas que não conversam</span></li>
+          <li><span class="tick">✓</span><span>Consistência: do mesmo jeito, sem esquecer</span></li>
+          <li><span class="tick">✓</span><span>Começa pequeno, em uma tarde</span></li>
+          <li><span class="tick">✓</span><span>Trabalha 24/7 e não tira férias</span></li>
+        </ul>
+      </div>
+    </div>
+    <div class="callout card mt" style="border-left:5px solid var(--accent);font-size:1.05em">
+      <strong>Se você consegue explicar a regra em uma frase, dá para automatizar.</strong>
+      <span class="muted"> &nbsp;Se a resposta é sempre “depende”, ainda é julgamento humano.</span>
+    </div>
+  </section>
+
+  <!-- 4 · ANATOMIA -->
+  <section class="slide">
+    <div class="kicker">O modelo mental que resolve 90% dos casos</div>
+    <h2>Toda automação tem 4 blocos</h2>
+    <div class="flow mt">
+      <div class="node"><span class="tag">1 · Gatilho</span><b>O que faz começar</b><span class="d">Chegou formulário · deu 8h · entrou pagamento</span></div>
+      <div class="arrow">→</div>
+      <div class="node"><span class="tag">2 · Condição</span><b>Qual caminho seguir</b><span class="d">É urgente? · valor &gt; 500? · cliente novo?</span></div>
+      <div class="arrow">→</div>
+      <div class="node"><span class="tag">3 · Ação</span><b>O que o robô faz</b><span class="d">Avisa · grava · responde · transfere</span></div>
+      <div class="arrow">→</div>
+      <div class="node"><span class="tag">4 · Registro</span><b>Onde isso fica</b><span class="d">Planilha · banco · log · histórico</span></div>
+    </div>
+    <div class="card mt">
+      <p class="small" style="margin:0"><strong>Exemplo:</strong> chegou uma solicitação <span class="muted">(gatilho)</span> → urgência é alta? <span class="muted">(condição)</span> → avisa o responsável <span class="muted">(ação)</span> → grava protocolo e prazo <span class="muted">(registro)</span>.</p>
+    </div>
+    <p class="lead mt">Guarde esses quatro nomes. Vamos usá-los a palestra inteira — e no exercício.</p>
+  </section>
+
+  <!-- 5 · ANTES x DEPOIS -->
+  <section class="slide">
+    <div class="kicker">O mesmo processo, dois mundos</div>
+    <h2>Triagem de uma solicitação</h2>
+    <div class="grid-2 mt">
+      <div class="card warn-card">
+        <div class="row"><h3 style="margin:0">Hoje</h3><span class="chip warn">≈ 17 min por solicitação</span></div>
+        <table style="margin-top:.5em">
+          <tr><td>Recebe e lê o e-mail</td><td style="text-align:right">3 min</td></tr>
+          <tr><td>Decide se é urgente</td><td style="text-align:right">3 min</td></tr>
+          <tr><td>Descobre o responsável</td><td style="text-align:right">4 min</td></tr>
+          <tr><td>Encaminha e cobra retorno</td><td style="text-align:right">4 min</td></tr>
+          <tr><td>Registra (ou esquece)</td><td style="text-align:right">3 min</td></tr>
+        </table>
+        <p class="small" style="margin:.6em 0 0">E cada pessoa faz de um jeito diferente.</p>
+      </div>
+      <div class="card accent-card">
+        <div class="row"><h3 style="margin:0">Com automação</h3><span class="chip">≈ 40 s até o responsável</span></div>
+        <ul class="check" style="margin-top:.6em">
+          <li><span class="tick">✓</span><span>Formulário único — 40 s para preencher</span></li>
+          <li><span class="tick">✓</span><span>Classificação e protocolo automáticos</span></li>
+          <li><span class="tick">✓</span><span>Alerta no responsável em segundos</span></li>
+          <li><span class="tick">✓</span><span>Prazo definido pela regra, não pelo humor</span></li>
+          <li><span class="tick">✓</span><span>100% registrado e auditável</span></li>
+        </ul>
+        <p class="small" style="margin:.6em 0 0"><strong>10 solicitações/dia:</strong> ~2h50 → ~15 min.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- 6 · CASE 1 -->
+  <section class="slide">
+    <span class="badge">Caso real · em produção</span>
+    <div class="kicker" style="margin-top:.9em">Case 1 · atendimento</div>
+    <h2>WhatsApp respondendo 24/7 — sem ninguém de plantão</h2>
+    <p class="lead" style="max-width:44ch">Uma PME recebia mensagem o dia inteiro. Fora do horário, ninguém respondia — e o cliente comprava do concorrente.</p>
+    <div class="flow mt">
+      <div class="node"><span class="tag">Gatilho</span><b>Mensagem chega</b><span class="d">a qualquer hora</span></div>
+      <div class="arrow">→</div>
+      <div class="node"><span class="tag">Condição</span><b>Tem resposta na base?</b><span class="d">busca por significado</span></div>
+      <div class="arrow">→</div>
+      <div class="node"><span class="tag">Ação</span><b>Responde ou transfere</b><span class="d">IA → setor certo, com histórico</span></div>
+      <div class="arrow">→</div>
+      <div class="node"><span class="tag">Registro</span><b>Conversa salva</b><span class="d">humano assume de onde parou</span></div>
+    </div>
+    <div class="grid-2 mt">
+      <div class="card accent-card"><div class="stat">segundos<small>tempo de primeira resposta — 24 h por dia</small></div></div>
+      <div class="card"><h3>Por que funciona</h3><p class="small" style="margin:0">O WhatsApp tem ~98% de abertura (contra ~20% do e-mail). Responder rápido não é simpatia — é vantagem competitiva. E a IA responde <em>sempre</em> com a informação correta da empresa.</p></div>
+    </div>
+  </section>
+
+  <!-- 7 · CASE 2 -->
+  <section class="slide">
+    <div class="kicker">Case 2 · processo interno</div>
+    <h2>Triagem de solicitações — o que vocês vão montar</h2>
+    <div class="flow mt">
+      <div class="node"><span class="tag">Gatilho</span><b>Formulário enviado</b><span class="d">nome, setor, descrição, impacto</span></div>
+      <div class="arrow">→</div>
+      <div class="node"><span class="tag">Condição</span><b>Impacto = “Todos”?</b><span class="d">define prioridade e prazo</span></div>
+      <div class="arrow">→</div>
+      <div class="node"><span class="tag">Ação</span><b>Alerta o responsável</b><span class="d">em segundos, com resumo</span></div>
+      <div class="arrow">→</div>
+      <div class="node"><span class="tag">Registro</span><b>Protocolo + prazo</b><span class="d">nada se perde no grupo</span></div>
+    </div>
+    <div class="grid-3 mt">
+      <div class="card"><h3>Antes</h3><p class="small" style="margin:0">17 min, por pessoa, cada um de um jeito. Pedido some no WhatsApp.</p></div>
+      <div class="card"><h3>Depois</h3><p class="small" style="margin:0">40 s até o responsável. Prioridade e prazo definidos pela regra.</p></div>
+      <div class="card accent-card"><h3>Ganho real</h3><p class="small" style="margin:0">Tempo <strong>e</strong> rastreabilidade. Você consegue provar que foi feito.</p></div>
+    </div>
+  </section>
+
+  <!-- 8 · CASE 3 -->
+  <section class="slide">
+    <div class="kicker">Case 3 · rotina</div>
+    <h2>O relatório que chega às 8h — sem ninguém lembrar de fazer</h2>
+    <div class="grid-2 mt">
+      <div class="card">
+        <h3>O processo</h3>
+        <ul class="check">
+          <li><span class="tick">1</span><span><strong>Gatilho:</strong> todo dia às 8h</span></li>
+          <li><span class="tick">2</span><span>Lê a planilha de vendas</span></li>
+          <li><span class="tick">3</span><span>Calcula totais e variação</span></li>
+          <li><span class="tick">4</span><span>Monta o resumo e envia à diretoria</span></li>
+          <li><span class="tick">5</span><span>Registra o envio — e avisa se falhar</span></li>
+        </ul>
+      </div>
+      <div class="card accent-card">
+        <div class="stat">40 min<small>por dia, antes</small></div>
+        <div class="big-line" style="font-size:1.6em;margin-top:.5em">→ 0 minuto humano<br><span style="font-size:.62em;font-weight:600;color:var(--muted)">160 horas por ano devolvidas</span></div>
+      </div>
+    </div>
+    <div class="card mt" style="border-left:5px solid var(--warn)">
+      <p style="margin:0"><strong>A lição escondida:</strong> o melhor relatório é o que chega sem ninguém lembrar de fazer. E o <em>“se falhar, avisa”</em> é o que separa automação de aposta.</p>
+    </div>
+  </section>
+
+  <!-- 9 · FERRAMENTAS -->
+  <section class="slide">
+    <div class="kicker">Ferramenta é o detalhe</div>
+    <h2>Com o que automatizar? Depende do seu ecossistema</h2>
+    <table class="mt">
+      <tr><th>Ferramenta</th><th>Melhor para</th><th>Custo</th><th>Curva</th></tr>
+      <tr><td><b>n8n</b> <span class="chip">hoje</span></td><td>Quem quer controle, roda local, integra qualquer API</td><td>Grátis (self-host)</td><td>Média</td></tr>
+      <tr><td><b>Power Automate</b></td><td>Empresas que já vivem no Microsoft 365</td><td>Incluído em muitos planos</td><td>Baixa</td></tr>
+      <tr><td><b>Make / Zapier</b></td><td>Nuvem, resultado rápido, sem instalar nada</td><td>US$ 9–30+/mês</td><td>Baixa</td></tr>
+      <tr><td><b>Apps Script</b></td><td>Planilhas Google e rotinas simples</td><td>Grátis</td><td>Média</td></tr>
+      <tr><td><b>RPA</b> (UiPath etc.)</td><td>Sistemas antigos, sem API, só com tela</td><td>Alto</td><td>Alta</td></tr>
+    </table>
+    <p class="lead mt">Hoje: <strong>n8n</strong> — roda no seu computador, sem cartão de crédito, e cada bloco é uma caixinha que você arrasta.</p>
+  </section>
+
+  <!-- 10 · DIVISÓRIA DEMO -->
+  <section class="slide dark">
+    <div class="kicker">Ao vivo</div>
+    <h1 style="font-size:3.6em">5 nós.<br>5 minutos.<br><span class="accent">Zero código.</span></h1>
+    <p class="lead">Formulário → classificação → alerta. Exatamente o que vocês vão fazer depois.</p>
+    <div class="row mt">
+      <span class="chip">1 · Gatilho</span><span class="chip">2 · Condição</span><span class="chip">3 · Ação</span><span class="chip">4 · Registro</span>
+    </div>
+  </section>
+
+  <!-- 11 · DEMO GATILHO -->
+  <section class="slide">
+    <div class="kicker">Demo · bloco 1 de 4</div>
+    <h2>O gatilho: um formulário</h2>
+    <div class="grid-2 mt">
+      <div class="mock">
+        <div class="mock-top"><span class="dot"></span><span class="dot"></span><span class="dot"></span>&nbsp; Solicitação de suporte</div>
+        <div class="mock-body">
+          <div class="field"><label>Nome</label><div class="input">Maria</div></div>
+          <div class="field"><label>E-mail</label><div class="input">maria@empresa.com</div></div>
+          <div class="field"><label>Mensagem</label><div class="input area">Sistema caiu, não consigo emitir nota</div></div>
+          <div class="field"><label>Urgência</label><div class="selects"><span class="pill on">Alta</span><span class="pill">Baixa</span></div></div>
+          <div class="mock-btn">Enviar</div>
+        </div>
+      </div>
+      <div>
+        <p class="lead">O gatilho é <strong>o que acontece</strong> — não o que você faz.</p>
+        <ul class="check">
+          <li><span class="tick">✓</span><span>Pode ser horário, mensagem, pagamento, e-mail, clique</span></li>
+          <li><span class="tick">✓</span><span>Um fluxo tem <strong>um</strong> gatilho</span></li>
+          <li><span class="tick">✓</span><span>Sem gatilho, nada acontece — por isso ele vem primeiro</span></li>
+        </ul>
+        <div class="card mt" style="border-left:5px solid var(--accent)">
+          <p class="small" style="margin:0"><strong>Pergunta certa:</strong> “o que precisa acontecer no mundo para esse processo começar?”</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 12 · DEMO CONDIÇÃO -->
+  <section class="slide">
+    <div class="kicker">Demo · bloco 2 de 4</div>
+    <h2>A condição: quem decide é você</h2>
+    <div class="grid-2 mt">
+      <div class="ifbox">
+        <div class="small" style="margin-bottom:.5em"><strong>If</strong> · Urgência</div>
+        <div class="cond">Urgencia&nbsp;=&nbsp;“Alta”</div>
+        <div class="branch"><span class="dotb"></span><b>sim</b> <span class="muted">→ alerta agora</span></div>
+        <div class="branch"><span class="dotr"></span><b>não</b> <span class="muted">→ fila normal, sem alerta</span></div>
+      </div>
+      <div>
+        <p class="lead">O robô <strong>não</strong> decide o que é urgente. Você decide — e ele obedece sempre igual.</p>
+        <div class="card warn-card mt">
+          <p style="margin:0"><strong>Regra confusa vira erro em escala.</strong> Se a equipe não concorda sobre o que é “urgente”, a automação só vai espalhar a discordância mais rápido.</p>
+        </div>
+      </div>
+    </div>
+    <p class="small mt">Condição nem sempre existe: às vezes o processo é linear (chegou → faz). Mas quando existe, é ela que dá inteligência ao fluxo.</p>
+  </section>
+
+  <!-- 13 · DEMO AÇÃO -->
+  <section class="slide">
+    <div class="kicker">Demo · bloco 3 de 4</div>
+    <h2>A ação: qualquer coisa com porta de entrada</h2>
+    <div class="grid-2 mt">
+      <div>
+        <pre><span class="c">// POST https://webhook.site/seu-endereco</span>
+{
+  <span class="k">"alerta"</span>: <span class="s">"Nova solicitação URGENTE"</span>,
+  <span class="k">"resumo"</span>: <span class="s">"Maria | Alta | Sistema caiu"</span>,
+  <span class="k">"recebidoEm"</span>: <span class="s">"17/11/2026 09:42"</span>
+}</pre>
+        <p class="small mt">É isso que o “responsável” recebe — em segundos.</p>
+      </div>
+      <div>
+        <ul class="check">
+          <li><span class="tick">✓</span><span>WhatsApp / e-mail / SMS</span></li>
+          <li><span class="tick">✓</span><span>Planilha, banco, CRM, ERP</span></li>
+          <li><span class="tick">✓</span><span>Slack, Teams, Telegram</span></li>
+          <li><span class="tick">✓</span><span>Qualquer sistema com API</span></li>
+        </ul>
+        <div class="card mt accent-card">
+          <p class="small" style="margin:0">Você não precisa de um sistema novo. Precisa que os que já existem <strong>conversem</strong>.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 14 · DEMO RESULTADO -->
+  <section class="slide">
+    <div class="kicker">Demo · o resultado</div>
+    <h2>Do formulário ao alerta em segundos</h2>
+    <div class="grid-2 mt">
+      <div class="card accent-card">
+        <h3>Urgência = Alta</h3>
+        <ul class="check">
+          <li><span class="tick">✓</span><span>Alerta chega no destino</span></li>
+          <li><span class="tick">✓</span><span>Com resumo, não com o texto cru</span></li>
+          <li><span class="tick">✓</span><span>Tempo: segundos</span></li>
+        </ul>
+      </div>
+      <div class="card">
+        <h3>Urgência = Baixa</h3>
+        <ul class="check">
+          <li><span class="tick">✓</span><span>Nenhum alerta — não interrompe ninguém</span></li>
+          <li><span class="tick">✓</span><span>Fica registrada no fluxo</span></li>
+          <li><span class="tick">✓</span><span>A regra vale para 100% dos casos</span></li>
+        </ul>
+      </div>
+    </div>
+    <p class="big-line mt">Duas regras. Um fluxo. <span class="accent">Nenhuma linha de código.</span></p>
+    <p class="small">E o mais importante: se o destino estiver fora do ar, o n8n registra a falha. <strong>Isso é o bloco 4 — o registro — que quase todo mundo esquece.</strong></p>
+  </section>
+
+  <!-- 15 · ERROS -->
+  <section class="slide">
+    <div class="kicker">Aprenda com o erro dos outros</div>
+    <h2>5 erros que destroem uma automação</h2>
+    <div class="grid-2 mt">
+      <div class="stack">
+        <div class="card warn-card"><h3>1 · Automatizar processo bagunçado</h3><p class="small" style="margin:0">Automação não conserta bagunça — ela acelera. Lixo em escala.</p></div>
+        <div class="card warn-card"><h3>2 · Não tratar erro</h3><p class="small" style="margin:0">Se falha e ninguém sabe, o processo morre em silêncio.</p></div>
+        <div class="card warn-card"><h3>3 · Não ter dono</h3><p class="small" style="margin:0">Automação sem responsável apodrece em três meses.</p></div>
+      </div>
+      <div class="stack">
+        <div class="card warn-card"><h3>4 · Excesso de regra</h3><p class="small" style="margin:0">Fluxo com 40 nós vira um sistema invisível e frágil.</p></div>
+        <div class="card warn-card"><h3>5 · Dado sensível sem cuidado</h3><p class="small" style="margin:0">LGPD continua valendo: acesso mínimo, base legal, rastro.</p></div>
+        <div class="card accent-card"><h3>O antídoto</h3><p class="small" style="margin:0">Automação boa é <strong>chata</strong>: previsível, monitorada e documentada.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 16 · MATRIZ -->
+  <section class="slide">
+    <div class="kicker">Por onde começar</div>
+    <h2>Escolha pelo impacto, não pela vontade</h2>
+    <div class="grid-2 mt">
+      <div>
+        <div class="matrix">
+          <div class="quad"><b>Baixo impacto · fácil</b><span>Faça depois. Distração produtiva.</span></div>
+          <div class="quad hot"><b>Alto impacto · fácil</b><span><strong>Comece aqui.</strong> Ganho rápido e visível.</span></div>
+          <div class="quad"><b>Baixo impacto · difícil</b><span>Não faça. Só custa tempo.</span></div>
+          <div class="quad"><b>Alto impacto · difícil</b><span>Planeje. Vale um projeto, não uma tarde.</span></div>
+        </div>
+        <div class="row mt" style="justify-content:space-between">
+          <span class="axis">← mais difícil&nbsp;&nbsp;&nbsp;&nbsp;facilidade&nbsp;&nbsp;&nbsp;&nbsp;mais fácil →</span>
+        </div>
+      </div>
+      <div>
+        <h3>O filtro dos 3 “sim”</h3>
+        <ul class="check">
+          <li><span class="tick">1</span><span><strong>Repete?</strong> Acontece toda semana (ou todo dia).</span></li>
+          <li><span class="tick">2</span><span><strong>Segue regra?</strong> Dá para escrever em uma frase.</span></li>
+          <li><span class="tick">3</span><span><strong>O erro custa caro?</strong> Esquecer atrasa, perde dinheiro ou irrita cliente.</span></li>
+        </ul>
+        <div class="card mt accent-card">
+          <p class="small" style="margin:0"><strong>Bons primeiros alvos:</strong> cobrança de vencimento, onboarding de cliente, follow-up de proposta, backup, atualização de status, relatório semanal.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 17 · MAPA -->
+  <section class="slide">
+    <div class="kicker">Antes de abrir a ferramenta</div>
+    <h2>20 minutos que valem mais que 2 horas de cliques</h2>
+    <div class="grid-3 mt">
+      <div class="card"><div class="stat" style="font-size:2em">1</div><h3>Escreva em 5 passos</h3><p class="small" style="margin:0">Como o processo funciona <em>hoje</em>, sem enfeite.</p></div>
+      <div class="card"><div class="stat" style="font-size:2em">2</div><h3>Marque o que é regra</h3><p class="small" style="margin:0">“Se X então Y”. O que sobra é julgamento humano.</p></div>
+      <div class="card"><div class="stat" style="font-size:2em">3</div><h3>Escolha o gatilho</h3><p class="small" style="margin:0">O evento que dá o pontapé. Um só.</p></div>
+      <div class="card"><div class="stat" style="font-size:2em">4</div><h3>Defina o “deu erro”</h3><p class="small" style="margin:0">Quem é avisado, como e em quanto tempo.</p></div>
+      <div class="card accent-card"><div class="stat" style="font-size:2em">5</div><h3>Meça o antes</h3><p class="small" style="margin:0">Quantos minutos por dia? Quantos erros por mês?</p></div>
+      <div class="card" style="background:#0f172a;color:#e8eef7;border-color:#0f172a">
+        <h3>Sem medir o antes…</h3>
+        <p class="small" style="margin:0;color:#b9c6d6">…você não prova o depois. A automação vira “uma coisa legal que a gente fez”.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- 18 · DIVISÓRIA EXERCÍCIO -->
+  <section class="slide dark">
+    <div class="kicker">Agora é com vocês</div>
+    <h1 style="font-size:3.4em">Sua vez.<br><span class="accent">12 minutos.</span></h1>
+    <p class="lead">Em duplas. Um computador por dupla. n8n aberto.</p>
+    <div class="grid-3 mt">
+      <div class="card"><h3>Missão</h3><p class="small" style="margin:0">Formulário → classifica impacto → alerta o responsável em &lt; 5 s.</p></div>
+      <div class="card"><h3>Critério de sucesso</h3><p class="small" style="margin:0">“Todos” chega no alerta. “Menor” não chega — mas fica registrado.</p></div>
+      <div class="card"><h3>Regra de ouro</h3><p class="small" style="margin:0">Tente rodar uma vez antes de chamar o instrutor. O erro ensina.</p></div>
+    </div>
+  </section>
+
+  <!-- 19 · PASSOS -->
+  <section class="slide">
+    <div class="kicker">Exercício · passo a passo</div>
+    <h2>5 passos até o seu primeiro robô</h2>
+    <div class="grid-2 mt">
+      <ul class="check" style="font-size:1.02em">
+        <li><span class="box"></span><span><strong>Duplique</strong> o workflow “EXERCICIO” no n8n</span></li>
+        <li><span class="box"></span><span><strong>Ajuste o formulário:</strong> solicitante, setor, descrição, impacto</span></li>
+        <li><span class="box"></span><span><strong>Monte a regra:</strong> Impacto = “Todos” → prioridade Alta</span></li>
+        <li><span class="box"></span><span><strong>Configure a ação:</strong> cole a <em>sua</em> URL do webhook.site</span></li>
+        <li><span class="box"></span><span><strong>Teste 2 vezes:</strong> uma “Todos”, uma “Parte”</span></li>
+      </ul>
+      <div>
+        <div class="card accent-card">
+          <h3>Critérios de sucesso</h3>
+          <ul class="check">
+            <li><span class="tick">✓</span><span>“Todos” → alerta chega em &lt; 5 s</span></li>
+            <li><span class="tick">✓</span><span>“Parte” → não alerta, mas executa</span></li>
+            <li><span class="tick">✓</span><span>Protocolo aparece no alerta</span></li>
+          </ul>
+        </div>
+        <div class="card mt">
+          <h3>Terminou antes?</h3>
+          <p class="small" style="margin:0">Desafios no guia: prazo por prioridade, segundo alerta, registro em arquivo.</p>
+        </div>
+        <p class="small mt">Guia completo com os passos detalhados e erros comuns está com vocês.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- 20 · COMPARTILHAR -->
+  <section class="slide">
+    <div class="kicker">Fechando o exercício</div>
+    <h2>3 perguntas. 3 duplas. 45 segundos cada.</h2>
+    <div class="grid-3 mt">
+      <div class="card accent-card"><div class="stat" style="font-size:2.6em">1</div><h3>O que funcionou de primeira?</h3><p class="small" style="margin:0">O que vocês acertaram sem ajuda.</p></div>
+      <div class="card blue-card"><div class="stat" style="font-size:2.6em;color:var(--blue)">2</div><h3>Onde travou?</h3><p class="small" style="margin:0">Configuração ou raciocínio? Quase sempre é configuração.</p></div>
+      <div class="card"><div class="stat" style="font-size:2.6em;color:#7c3aed">3</div><h3>O que automatizariam amanhã?</h3><p class="small" style="margin:0">Aquela tarefa que veio à cabeça no início.</p></div>
+    </div>
+    <p class="big-line mt">A ferramenta se aprende em uma tarde.<br><span class="accent">O raciocínio é o que fica.</span></p>
+  </section>
+
+  <!-- 21 · DESAFIO -->
+  <section class="slide">
+    <div class="kicker">Desafio · 7 dias</div>
+    <h2>Uma automação pequena que roda</h2>
+    <div class="flow mt">
+      <div class="node"><span class="tag">Dia 1</span><b>Escolha 1 tarefa</b><span class="d">até 10 min, toda semana</span></div>
+      <div class="arrow">→</div>
+      <div class="node"><span class="tag">Dia 2–3</span><b>Mapeie a regra</b><span class="d">gatilho, condição, ação, registro</span></div>
+      <div class="arrow">→</div>
+      <div class="node"><span class="tag">Dia 4–5</span><b>Monte e teste</b><span class="d">com dados reais, não inventados</span></div>
+      <div class="arrow">→</div>
+      <div class="node"><span class="tag">Dia 6–7</span><b>Rode e meça</b><span class="d">quanto tempo sobrou?</span></div>
+    </div>
+    <p class="quote mt" style="font-size:1.6em">Não precisa ser bonito.<br><span class="accent">Precisa rodar.</span></p>
+  </section>
+
+  <!-- 22 · FECHAMENTO -->
+  <section class="slide dark">
+    <div class="kicker">Obrigado</div>
+    <p class="quote" style="font-size:2.6em;max-width:30ch">Se é repetitivo e segue uma regra,<span class="accent">não deveria ser você fazendo.</span></p>
+    <p class="lead" style="margin-top:1em">Automação não tira o humano do processo. Devolve o humano para a parte que só o humano faz: decidir, negociar, criar, cuidar.</p>
+    <div class="row mt" style="gap:2.5em;align-items:flex-end">
+      <div>
+        <p class="small" style="margin:0 0 .4em"><strong>[SEU NOME]</strong></p>
+        <p class="small" style="margin:0">[e-mail] · [LinkedIn] · [link do guia]</p>
+        <p class="small" style="margin:.6em 0 0;color:#8fa1b6">Perguntas? Vamos automatizar alguma coisa.</p>
+      </div>
+      <div class="qr">QR code<br>do guia<br>(substituir)</div>
+    </div>
+  </section>
+
+</main>
+
+<div class="hud">
+  <button id="prev" title="Anterior">←</button>
+  <span id="count">1 / 22</span>
+  <button id="next" title="Próximo">→</button>
+</div>
+
+<script>
+(function(){
+  const slides = Array.from(document.querySelectorAll('.slide'));
+  const count = document.getElementById('count');
+  const bar = document.querySelector('#bar i');
+  let i = 0, touchX = null;
+
+  function show(n, push){
+    i = Math.max(0, Math.min(slides.length - 1, n));
+    slides.forEach((s, k) => s.classList.toggle('active', k === i));
+    count.textContent = (i + 1) + ' / ' + slides.length;
+    bar.style.width = ((i + 1) / slides.length * 100) + '%';
+    if (push !== false) history.replaceState(null, '', '#' + (i + 1));
+  }
+
+  document.getElementById('next').onclick = () => show(i + 1);
+  document.getElementById('prev').onclick = () => show(i - 1);
+
+  addEventListener('keydown', (e) => {
+    const k = e.key;
+    if (k === 'ArrowRight' || k === 'ArrowDown' || k === 'PageDown' || k === ' ' || k === 'Enter') {
+      e.preventDefault(); show(i + 1);
+    } else if (k === 'ArrowLeft' || k === 'ArrowUp' || k === 'PageUp' || k === 'Backspace') {
+      e.preventDefault(); show(i - 1);
+    } else if (k === 'Home') { e.preventDefault(); show(0); }
+    else if (k === 'End') { e.preventDefault(); show(slides.length - 1); }
+    else if (k === 'f' || k === 'F') {
+      if (!document.fullscreenElement) document.documentElement.requestFullscreen?.();
+      else document.exitFullscreen?.();
+    }
+  });
+
+  addEventListener('touchstart', (e) => { touchX = e.changedTouches[0].clientX; }, {passive:true});
+  addEventListener('touchend', (e) => {
+    if (touchX === null) return;
+    const dx = e.changedTouches[0].clientX - touchX;
+    if (Math.abs(dx) > 50) show(i + (dx < 0 ? 1 : -1));
+    touchX = null;
+  }, {passive:true});
+
+  const fromHash = parseInt(location.hash.replace('#',''), 10);
+  show(Number.isFinite(fromHash) && fromHash > 0 ? fromHash - 1 : 0, false);
+})();
+</script>
+</body>
+</html>

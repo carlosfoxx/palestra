@@ -1,0 +1,197 @@
+{
+  "name": "DEMO - Triagem de solicitacoes",
+  "nodes": [
+    {
+      "parameters": {
+        "content": "## DEMO — triagem em 5 minutos\n\n**Antes de rodar:** troque a URL do nó **4. Alerta no time** pela sua URL do webhook.site.\n\n1. Duplo clique em **1. Formulario** → *Execute step*\n2. Preencha com Urgencia = **Alta**\n3. Veja o alerta chegar no webhook.site\n4. Repita com **Baixa**: nada chega (só registra)\n\n---\nGatilho → Condição → Ação → Registro",
+        "height": 320,
+        "width": 400,
+        "color": 4
+      },
+      "id": "d0000000-0000-4000-8000-000000000000",
+      "name": "Instrucoes",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [-520, -220]
+    },
+    {
+      "parameters": {
+        "formTitle": "Solicitacao de suporte",
+        "formDescription": "Preencha e o time responsavel sera avisado em segundos.",
+        "formFields": {
+          "values": [
+            {
+              "fieldLabel": "Nome",
+              "fieldType": "text",
+              "requiredField": true
+            },
+            {
+              "fieldLabel": "Email",
+              "fieldType": "email",
+              "requiredField": true
+            },
+            {
+              "fieldLabel": "Mensagem",
+              "fieldType": "textarea",
+              "requiredField": true
+            },
+            {
+              "fieldLabel": "Urgencia",
+              "fieldType": "dropdown",
+              "fieldOptions": {
+                "values": [
+                  {
+                    "option": "Alta"
+                  },
+                  {
+                    "option": "Baixa"
+                  }
+                ]
+              },
+              "requiredField": true
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "d1000000-0000-4000-8000-000000000001",
+      "name": "1. Formulario",
+      "type": "n8n-nodes-base.formTrigger",
+      "typeVersion": 2.2,
+      "position": [0, 0],
+      "webhookId": "d1000000-0000-4000-8000-00000000beef"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "d2000000-0000-4000-8000-000000000002",
+              "name": "resumo",
+              "value": "={{ $json.Nome }} | Urgencia: {{ $json.Urgencia }} | {{ $json.Mensagem }}",
+              "type": "string"
+            },
+            {
+              "id": "d2000000-0000-4000-8000-000000000003",
+              "name": "recebidoEm",
+              "value": "={{ $now.format('dd/MM/yyyy HH:mm:ss') }}",
+              "type": "string"
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "options": {}
+      },
+      "id": "d2000000-0000-4000-8000-000000000004",
+      "name": "2. Padronizar dados",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [240, 0]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "d3000000-0000-4000-8000-000000000005",
+              "leftValue": "={{ $json.Urgencia }}",
+              "rightValue": "Alta",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "d3000000-0000-4000-8000-000000000006",
+      "name": "3. E urgente?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [500, 0]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://webhook.site/COLE-SEU-URL-AQUI",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ alerta: 'NOVA SOLICITACAO URGENTE', resumo: $json.resumo, recebidoEm: $json.recebidoEm }) }}",
+        "options": {}
+      },
+      "id": "d4000000-0000-4000-8000-000000000007",
+      "name": "4. Alerta no time",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [800, -150]
+    },
+    {
+      "parameters": {},
+      "id": "d5000000-0000-4000-8000-000000000008",
+      "name": "5. Fila normal (so registra)",
+      "type": "n8n-nodes-base.noOp",
+      "typeVersion": 1,
+      "position": [800, 150]
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "1. Formulario": {
+      "main": [
+        [
+          {
+            "node": "2. Padronizar dados",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "2. Padronizar dados": {
+      "main": [
+        [
+          {
+            "node": "3. E urgente?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "3. E urgente?": {
+      "main": [
+        [
+          {
+            "node": "4. Alerta no time",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "5. Fila normal (so registra)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "d0000000-0000-4000-8000-00000000aa01",
+  "meta": {
+    "templateCredsSetupCompleted": true
+  },
+  "tags": []
+}
