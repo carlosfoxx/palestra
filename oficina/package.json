@@ -1,0 +1,15 @@
+{
+  "name": "oficina-automacao",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Oficina ao vivo: webhook real, regras no servidor, alerta externo, log e placar.",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node server.js"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "license": "MIT"
+}

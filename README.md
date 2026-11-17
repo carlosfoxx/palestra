@@ -2,8 +2,8 @@
 
 **Público:** iniciantes / não técnicos
 **Duração:** 45–60 min (roteiro calibrado para 55 min, com cortes marcados)
-**Ferramenta do exercício:** n8n (no-code) **ou** o simulador local — escolha pelo risco da sala
-**Formato:** 3 exemplos reais → demo ao vivo → exercício em duplas
+**Ferramenta do exercício:** oficina publicada no Render (plano A), simulador local (plano B) ou n8n
+**Formato:** 3 exemplos reais → demo ao vivo → exercício em duplas com automação real
 
 ---
 
@@ -15,6 +15,9 @@
 | `slides.html` | Deck completo. Abra com duplo clique. Navegue com ← → |
 | `simulador/index.html` | **Simulador em tempo real**: arquivo único, offline, sem instalar nada |
 | `simulador/README.md` | Como distribuir, gabarito das regras e roteiro de 12 min em aula |
+| `oficina/` | **Oficina real**: app Node com webhook público, regras no servidor, alerta externo e painel — publica no Render |
+| `render.yaml` | Blueprint do Render já apontando para `oficina/` |
+| `oficina/README.md` | Deploy no GitHub + Render, roteiro de 15 min e limitações do free tier |
 | `exercicio/guia-do-aluno.md` | Handout do exercício (imprima ou distribua o link) |
 | `exercicio/gabarito-instrutor.md` | Solução passo a passo, rubrica e erros comuns |
 | `workflows/01-demo.json` | Workflow da demo (importar no n8n) |
@@ -35,7 +38,7 @@
 | 0:12–0:22 | 3 exemplos reais (WhatsApp 24/7, triagem, relatório) | 5–8 |
 | 0:22–0:33 | Demo ao vivo no n8n | 9–14 |
 | 0:33–0:41 | Erros comuns + como escolher a primeira automação | 15–17 |
-| 0:41–0:53 | Exercício em duplas (12 min): simulador ou n8n | 18–19 |
+| 0:41–0:53 | Exercício em duplas (12 min): oficina no Render ou simulador | 18–19 |
 | 0:53–0:57 | Compartilhar resultados | 20 |
 | 0:57–1:00 | Desafio de 7 dias + fechamento | 21–22 |
 
@@ -49,6 +52,9 @@
 
 - [ ] Instalar/abrir o n8n e rodar a demo uma vez do início ao fim
 - [ ] Abrir `simulador/index.html`, rodar os 3 cenários e conferir o placar
+- [ ] Publicar `oficina/` no Render e abrir o link no celular (teste de verdade)
+- [ ] Rodar o "dia completo" nos 3 cenários da oficina e conferir nota 100 com as regras ideais
+- [ ] Abrir `/painel` no projetor e conferir o ranking
 - [ ] Enviar o `simulador/index.html` para você mesmo por WhatsApp/e-mail (teste real de distribuição)
 - [ ] Criar uma URL em https://webhook.site e deixar a aba aberta no navegador
 - [ ] Importar `workflows/01-demo.json` e `workflows/02-exercicio-solucao.json`
@@ -60,6 +66,7 @@
 ### No dia (10 min antes)
 
 - [ ] n8n rodando em `http://localhost:5678`
+- [ ] Oficina aberta no projetor (`/painel`) e link/QR pronto para a turma
 - [ ] `simulador/index.html` aberto em outra aba (se for usar na sala)
 - [ ] Aba do webhook.site aberta e visível
 - [ ] Deck aberto (tecla `F` para tela cheia)
@@ -69,11 +76,13 @@
 ### Plano B (sem internet ou n8n travou)
 
 1. **A demo tem prints no deck** — continue a explicação pelos slides 11–14.
-2. **O exercício continua com o simulador** (`simulador/index.html`), que roda offline e não depende
-   do n8n. Cada dupla configura as regras e compara o placar.
-3. Sem computador por dupla: projete o simulador e conduza a turma por votação ("alerta em tudo ou só
+2. **Se a oficina no Render dormir**, o primeiro acesso leva ~50 s: abra o link 2 min antes e deixe
+   uma aba já acordada. Se a internet cair de vez, troque para o simulador.
+3. **O exercício continua com o simulador** (`simulador/index.html`), que roda offline e não depende
+   do n8n nem do Render. Cada dupla configura as regras e compara o placar.
+4. Sem computador por dupla: projete o simulador e conduza a turma por votação ("alerta em tudo ou só
    no urgente?"). Depois, cada dupla desenha os 4 blocos do processo que escolher.
-4. Peça a uma dupla que já usou Zapier/Make/Power Automate para contar a experiência.
+5. Peça a uma dupla que já usou Zapier/Make/Power Automate para contar a experiência.
 
 ---
 
@@ -113,9 +122,46 @@ O participante ajusta regras e vê a automação decidindo em tempo real — ale
 relatório diário (12 dias). O gabarito das regras, o roteiro de 12 min e a demo de 60 s
 (automação OFF → fila crescendo → ON → fila drenando) estão em `simulador/README.md`.
 
-**n8n ou simulador?** Use o simulador quando a sala tem restrição de instalação, internet instável ou
-pouco tempo. Use o n8n quando quiser que a turma veja a ferramenta real e conecte um webhook de verdade.
-Os dois usam o mesmo raciocínio — dá para fazer o simulador primeiro e o n8n como desafio de casa.
+**n8n, oficina ou simulador?** Use a **oficina no Render** como plano A: é automação real, acessível
+por link/QR, sem instalar nada. Use o **simulador** quando a internet for o gargalo. Use o **n8n**
+quando quiser abrir a ferramenta de mercado e mostrar o fluxo por dentro. Os três usam o mesmo
+raciocínio — dá para fazer o simulador como aquecimento e a oficina como exercício principal.
+
+---
+
+## Oficina real: GitHub + Render (o "ato 2")
+
+Depois da teoria, a turma não simula: cada dupla cria um espaço, define regras e recebe eventos por um
+**webhook público**. O servidor Node decide, alerta (na tela e, se configurado, num POST real para o
+webhook.site) e registra — com placar e painel para projetar.
+
+**O que é real:** requisições HTTP, regras no servidor, ação externa, log e placar.
+**O que é fixo:** os eventos do "dia completo", iguais para todos compararem o mesmo cenário.
+
+### Publicar em 5 minutos
+
+1. Crie um repositório vazio no GitHub e envie este kit (`git remote add origin ...` e
+   `git push -u origin main`).
+2. No Render: **New → Blueprint** → conecte o repositório → **Apply**. O `render.yaml` já configura
+   `rootDir: oficina`, plano free e health check em `/healthz`.
+3. Abra o link gerado no celular, crie um espaço e clique em **Enviar o dia completo**.
+4. Gere um QR code do link para o slide 18 e deixe `/painel` aberto no projetor.
+
+Passo a passo detalhado, API, segurança e limitações: `oficina/README.md`.
+
+### Em aula (12–15 min)
+
+1. **0–2 min:** projete o QR. "Abram, criem um espaço com o nome da dupla e escolham um processo."
+2. **2–5 min:** cada dupla mexe nas regras. Deixe errar de propósito.
+3. **5–8 min:** **Enviar 1 evento** e leia o log junto: gatilho → condição → ação → registro.
+4. **8–11 min:** **Enviar o dia completo**. Ajuste as regras e rode de novo para ver o placar mudar.
+5. **11–14 min:** abra `/painel` e compare critérios, não só notas.
+6. **14–15 min:** "o que vocês mudariam no processo real amanhã?"
+
+### Free tier (aceitável para aula)
+
+O serviço dorme após ~15 min sem acesso e acorda em ~50 s; sem disco, os espaços em memória somem em
+restart/deploy. Sessões duram 3 h. Para uso contínuo, use plano pago + disco ou um banco de dados.
 
 ---
 

@@ -5,6 +5,24 @@
 
 ---
 
+## Versão online (plano A)
+
+Se a turma está usando a oficina publicada no Render, o gabarito do processo **Triagem de solicitações** é:
+
+| Regra | Valor ideal |
+|---|---|
+| Prioridade ALTA quando o impacto for | `"Todos" apenas` |
+| Pedidos do Financeiro são sempre críticos | ligado |
+| Gerar protocolo automático | ligado |
+
+Isso fecha **100 pontos** no “dia completo” (16 eventos) e é o mesmo critério deste guia: alerta quando
+importa, silêncio quando não importa, tudo protocolado. Use o **`/painel`** para a comparação final e
+os eventos do webhook (`/api/hook/:id`) se quiser testar por `curl`.
+
+As seções de n8n abaixo continuam válidas como **plano C**: mesmo raciocínio, com nós em vez de campos.
+
+---
+
 ## Antes da aula (10 min de preparação)
 
 1. **Abra o n8n** e importe `workflows/02-exercicio-base.json` e `workflows/03-exercicio-solucao.json`.

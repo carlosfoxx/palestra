@@ -1,0 +1,180 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Painel da turma — Oficina de Automação</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='22' fill='%2316a34a'/%3E%3Ctext x='50' y='68' font-size='54' text-anchor='middle' fill='white' font-family='sans-serif'%3E%F0%9F%8F%86%3C/text%3E%3C/svg%3E">
+<link rel="stylesheet" href="styles.css?v=2">
+</head>
+<body>
+
+<header>
+  <a class="brand" href="/">
+    <span class="logo">🏆</span>
+    <span class="brand-txt"><b>Painel da turma</b><small>placar ao vivo · oficina de automação</small></span>
+  </a>
+  <div class="top-actions">
+    <span class="live-dot"><i></i> atualiza sozinho</span>
+    <a class="btn ghost" href="/" target="_blank" rel="noreferrer">Abrir oficina ↗</a>
+    <button class="btn ghost" id="refresh">Atualizar</button>
+  </div>
+</header>
+
+<main class="board-page">
+  <div class="board-top">
+    <div>
+      <div class="eyebrow">Projete esta tela em aula</div>
+      <h1>Quem montou o robô mais limpo?</h1>
+      <p class="small">O placar só soma quem já enviou eventos. Cada espaço tem 3 horas de vida; o painel mostra os 30 melhores.</p>
+    </div>
+    <div class="board-chips" id="chips"></div>
+  </div>
+
+  <div class="card" style="padding:6px 14px 10px">
+    <table class="board-table">
+      <thead>
+        <tr>
+          <th class="pos">#</th>
+          <th>Espaço</th>
+          <th class="scn">Processo</th>
+          <th class="prog">Dia completo</th>
+          <th class="when">Atualizado</th>
+          <th style="text-align:right">Placar</th>
+        </tr>
+      </thead>
+      <tbody id="boardBody">
+        <tr><td colspan="6" class="board-empty">Carregando…</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="board-foot">
+    <span class="tiny" id="boardFoot">—</span>
+    <a class="link" href="/" target="_blank" rel="noreferrer">criar meu espaço</a>
+  </div>
+</main>
+
+<div id="toast" class="toast"></div>
+
+<script>
+'use strict';
+
+var LS_KEY = 'oficina-automacao/v1';
+var SCEN = {
+  whatsapp: { icon: '💬', label: 'Atendimento WhatsApp' },
+  triagem: { icon: '🗂️', label: 'Triagem de solicitações' },
+  relatorio: { icon: '📊', label: 'Relatório diário' }
+};
+
+function esc(v) {
+  return String(v == null ? '' : v)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;');
+}
+
+function myId() {
+  try {
+    var raw = localStorage.getItem(LS_KEY);
+    if (!raw) return null;
+    var v = JSON.parse(raw);
+    return v && v.id ? v.id : null;
+  } catch (e) {
+    return null;
+  }
+}
+
+function ago(ts) {
+  if (!ts) return '—';
+  var d = Date.now() - ts;
+  if (d < 60000) return 'agora';
+  if (d < 3600000) return Math.floor(d / 60000) + ' min';
+  return Math.floor(d / 3600000) + ' h';
+}
+
+var lastRows = null;
+
+function toast(msg) {
+  var el = document.getElementById('toast');
+  el.textContent = msg;
+  el.classList.add('show');
+  setTimeout(function () { el.classList.remove('show'); }, 2400);
+}
+
+function render(rows) {
+  var mine = myId();
+  var body = document.getElementById('boardBody');
+  var chips = document.getElementById('chips');
+
+  var counts = { whatsapp: 0, triagem: 0, relatorio: 0 };
+  rows.forEach(function (r) { if (counts[r.scenario] != null) counts[r.scenario] += 1; });
+
+  chips.innerHTML =
+    '<span class="chip">espaços <b>' + rows.length + '</b></span>' +
+    Object.keys(SCEN).map(function (k) {
+      return '<span class="chip">' + SCEN[k].icon + ' <b>' + (counts[k] || 0) + '</b></span>';
+    }).join('');
+
+  if (!rows.length) {
+    body.innerHTML =
+      '<tr><td colspan="6" class="board-empty">' +
+      'Ninguém enviou eventos ainda.<br>Abra a oficina, crie um espaço e clique em <b>Enviar o dia completo</b>.' +
+      '</td></tr>';
+    document.getElementById('boardFoot').textContent = 'Nenhum espaço pontuado até agora.';
+    return;
+  }
+
+  body.innerHTML = rows.map(function (r, i) {
+    var sc = SCEN[r.scenario] || { icon: '⚙', label: r.scenario };
+    var pos = i + 1;
+    var posCls = pos <= 3 ? ' top' + pos : '';
+    var medal = pos === 1 ? '🥇' : pos === 2 ? '🥈' : pos === 3 ? '🥉' : pos;
+    var pct = r.total ? Math.min(100, Math.round((r.events / r.total) * 100)) : 0;
+    return '<tr' + (r.id === mine ? ' class="me"' : '') + '>' +
+      '<td class="pos' + posCls + '">' + medal + '</td>' +
+      '<td class="name">' + esc(r.name) + (r.id === mine ? ' <small>seu espaço</small>' : '<small>código ' + esc(r.id) + '</small>') + '</td>' +
+      '<td class="scn">' + sc.icon + ' ' + esc(sc.label) + '</td>' +
+      '<td class="prog"><div class="pbar"><i style="width:' + pct + '%"></i></div><small class="tiny" style="margin:0">' + r.events + ' / ' + r.total + '</small></td>' +
+      '<td class="when">' + ago(r.updatedAt) + '</td>' +
+      '<td class="score">' + r.score + '<small> pts</small></td>' +
+      '</tr>';
+  }).join('');
+
+  var top = rows[0];
+  document.getElementById('boardFoot').textContent =
+    'Liderança: ' + top.name + ' com ' + top.score + ' pontos · ' + rows.length + ' espaço(s) pontuado(s).';
+}
+
+function load() {
+  fetch('/api/board', { cache: 'no-store' })
+    .then(function (r) {
+      if (!r.ok) throw new Error('HTTP ' + r.status);
+      return r.json();
+    })
+    .then(function (data) {
+      var rows = (data && data.rows) || [];
+      lastRows = rows;
+      render(rows);
+    })
+    .catch(function () {
+      if (lastRows === null) {
+        document.getElementById('boardBody').innerHTML =
+          '<tr><td colspan="6" class="board-empty">Não consegui falar com o servidor.<br>' +
+          'No free tier, o serviço pode estar acordando — tente de novo em ~50 s.</td></tr>';
+      }
+    });
+}
+
+document.getElementById('refresh').addEventListener('click', function () {
+  lastRows = null;
+  load();
+  toast('Atualizado.');
+});
+
+load();
+setInterval(load, 3000);
+</script>
+</body>
+</html>

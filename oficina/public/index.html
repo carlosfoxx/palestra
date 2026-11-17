@@ -1,0 +1,208 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Oficina de Automação — ao vivo</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='22' fill='%2316a34a'/%3E%3Ctext x='50' y='68' font-size='54' text-anchor='middle' fill='white' font-family='sans-serif'%3E%E2%9A%99%3C/text%3E%3C/svg%3E">
+<link rel="stylesheet" href="styles.css?v=2">
+</head>
+<body>
+
+<header>
+  <a class="brand" href="/">
+    <span class="logo">⚙</span>
+    <span class="brand-txt"><b>Oficina de Automação</b><small>webhook real · regras reais · ação real</small></span>
+  </a>
+
+  <div id="sessionHead" class="session-head" hidden>
+    <span class="scene-pill" id="scenePill">—</span>
+    <span class="who" id="whoName">—</span>
+    <button class="code-chip" id="codeBtn" title="Copiar código do espaço">código <b id="codeTxt">—</b></button>
+  </div>
+
+  <div class="top-actions">
+    <a class="btn ghost" href="/painel" target="_blank" rel="noreferrer">Painel da turma ↗</a>
+    <button class="icon" id="helpBtn" title="Como funciona" aria-label="Como funciona">?</button>
+    <button class="btn ghost" id="leaveBtn" hidden>Sair</button>
+  </div>
+</header>
+
+<main>
+  <!-- ================= LANDING ================= -->
+  <section id="landing" class="landing">
+    <div class="hero">
+      <div class="eyebrow">Depois da teoria, a mão na massa</div>
+      <h1>Agora é de verdade.</h1>
+      <p class="lead">
+        Você vai definir as regras de um processo e receber eventos por um <b>webhook real</b>.
+        O robô roda num servidor no Render: ele decide, age e registra — e você vê tudo chegando ao vivo.
+      </p>
+      <div class="hero-badges">
+        <span>Sem instalar</span>
+        <span>Sem login</span>
+        <span>Funciona no celular</span>
+      </div>
+    </div>
+
+    <div id="resumeCard" class="card resume" hidden>
+      <div>
+        <div class="eyebrow">Espaço encontrado neste navegador</div>
+        <b id="resumeName">—</b>
+        <p class="small" id="resumeMeta">—</p>
+      </div>
+      <div class="resume-actions">
+        <button class="btn ghost" id="resumeNew">Criar outro</button>
+        <button class="btn primary" id="resumeOpen">Continuar →</button>
+      </div>
+    </div>
+
+    <div class="card create">
+      <h2>Criar meu espaço</h2>
+      <p class="small">Leva 10 segundos. O espaço fica salvo neste navegador por 3 horas.</p>
+
+      <label class="field-label" for="wsName">Nome do espaço</label>
+      <input id="wsName" class="input" maxlength="40" placeholder="Ex.: Dupla Ana e Bia" autocomplete="off">
+
+      <div class="field-label" style="margin-top:14px">Escolha o processo</div>
+      <div id="scenarioPick" class="scenarios"></div>
+
+      <button class="btn primary wide" id="createBtn">Criar meu robô →</button>
+      <p class="tiny">Sem cadastro. Sem senha. O código do espaço serve para achar seu robô no painel.</p>
+    </div>
+
+    <div class="how">
+      <div class="how-step"><span>1</span><b>Defina as regras</b><p>Quem alertar, quando transferir, o que registrar.</p></div>
+      <div class="how-step"><span>2</span><b>Receba no webhook</b><p>Um endereço só seu. Cada evento é uma requisição HTTP de verdade.</p></div>
+      <div class="how-step"><span>3</span><b>Veja o robô decidir</b><p>Alerta, ação e registro aparecem em tempo real, com placar no fim.</p></div>
+    </div>
+  </section>
+
+  <!-- ================= WORKSPACE ================= -->
+  <section id="app" class="workspace" hidden>
+    <aside class="panel left">
+      <div class="mission">
+        <div class="eyebrow">Missão</div>
+        <p id="missionText"></p>
+        <div class="hint" id="hintText"></div>
+      </div>
+
+      <div class="sect">
+        <h2>Suas regras</h2>
+        <button class="link" id="resetRules">restaurar padrão</button>
+      </div>
+      <div id="rulesForm"></div>
+
+      <details class="advanced">
+        <summary>Destino real do alerta (opcional)</summary>
+        <p class="tiny">Cole uma URL do webhook.site. Quando a regra disparar um alerta, o servidor faz um POST real para lá.</p>
+        <input id="outbound" class="input" placeholder="https://webhook.site/..." autocomplete="off" spellcheck="false">
+        <div class="tiny" id="outboundState"></div>
+      </details>
+
+      <div class="save-row">
+        <span id="saveState" class="save-state">regras salvas</span>
+        <button class="btn primary" id="saveBtn">Salvar regras</button>
+      </div>
+    </aside>
+
+    <section class="center">
+      <div class="pipeline" id="pipeline">
+        <div class="pnode"><span class="n">1 · Webhook</span><b id="pCount1">0 eventos</b><small>recebe o POST</small></div>
+        <div class="parrow">›</div>
+        <div class="pnode"><span class="n">2 · Regras</span><b id="pCount2">0 decisões</b><small>sua configuração</small></div>
+        <div class="parrow">›</div>
+        <div class="pnode"><span class="n">3 · Ação</span><b id="pCount3">0 alertas</b><small>avisa quem importa</small></div>
+        <div class="parrow">›</div>
+        <div class="pnode"><span class="n">4 · Registro</span><b id="pCount4">0 salvos</b><small>fica no histórico</small></div>
+      </div>
+
+      <div class="card hook-card">
+        <div class="hook-head">
+          <div>
+            <div class="eyebrow">Seu webhook (real)</div>
+            <code id="hookUrl">—</code>
+          </div>
+          <button class="btn ghost" id="copyHook">Copiar</button>
+        </div>
+        <details class="curl">
+          <summary>Testar de fora (curl / n8n / qualquer sistema)</summary>
+          <pre id="curlBox"></pre>
+          <p class="tiny">Qualquer sistema com HTTP consegue disparar seu robô. É isso que “integrar” significa.</p>
+        </details>
+      </div>
+
+      <div class="card fire-card">
+        <div class="fire-head">
+          <h2>Disparar eventos</h2>
+          <span class="run-state" id="runState">pronto</span>
+        </div>
+        <div id="testForm" class="test-form"></div>
+        <div class="fire-actions">
+          <button class="btn ghost" id="sendOne">Enviar 1 evento</button>
+          <button class="btn primary" id="sendDay">Enviar o dia completo</button>
+          <button class="btn ghost" id="resetRun" title="Limpar execuções">⟲</button>
+        </div>
+        <div class="progress"><i id="progressBar"></i></div>
+        <div class="tiny" id="progressTxt">0 de 0 eventos</div>
+      </div>
+
+      <div class="console">
+        <div class="console-head">
+          <span>Execuções ao vivo</span>
+          <span class="spacer"></span>
+          <span class="tiny" style="color:#94a3b8" id="lastAt">—</span>
+        </div>
+        <div class="trace" id="trace">
+          <div class="empty">Envie um evento para ver o robô decidir.<br>Ou clique em <b>Enviar o dia completo</b>.</div>
+        </div>
+      </div>
+    </section>
+
+    <aside class="panel right">
+      <div class="phone">
+        <div class="phone-head"><span class="live"></span> Alertas entregues</div>
+        <div class="alerts" id="alerts"><div class="no-alert">Nenhum alerta ainda</div></div>
+      </div>
+
+      <button type="button" class="score-card" id="scoreCard" title="Ver resultado detalhado">
+        <div class="ring" id="ring"><span id="scoreNum">—</span></div>
+        <div class="score-txt"><b id="scoreGrade">aguardando</b><small id="scoreMsg">envie eventos para pontuar</small></div>
+      </button>
+
+      <div class="kpis" id="kpis"></div>
+
+      <div class="foot-note">
+        Isso não é simulação de tela: cada evento é um POST HTTP processado no servidor.
+        <span id="srvInfo"></span>
+      </div>
+    </aside>
+  </section>
+</main>
+
+<div class="modal" id="modal"><div class="sheet" id="sheet"></div></div>
+
+<div class="modal" id="help">
+  <div class="sheet">
+    <button class="x" data-act="close" aria-label="Fechar">×</button>
+    <div class="eyebrow">Como funciona</div>
+    <h2>O mesmo raciocínio da palestra — agora com servidor</h2>
+    <p class="note">A diferença entre o simulador e a oficina: aqui o evento sai do seu navegador como uma requisição HTTP, é processado por um servidor Node no Render, e a decisão volta para a tela. Nada é encenado no front.</p>
+    <div class="help-grid">
+      <div class="help-card"><b>1 · Webhook</b><p>Um endereço só seu. Quem fizer POST nele entrega um evento ao seu robô.</p></div>
+      <div class="help-card"><b>2 · Regras</b><p>O servidor lê suas regras e decide o caminho. Mudou a regra, muda a decisão dos próximos eventos.</p></div>
+      <div class="help-card"><b>3 · Ação</b><p>Alerta na tela e, se você configurar, um POST real para o webhook.site.</p></div>
+      <div class="help-card"><b>4 · Registro</b><p>Cada execução fica no histórico. O placar é calculado a partir dele.</p></div>
+      <div class="help-card"><b>O desafio</b><p>Ajuste as regras até passar de 80. Depois tente 90+ trocando de cenário.</p></div>
+      <div class="help-card"><b>Dica de aula</b><p>Cada dupla usa um nome de espaço diferente. O <b>Painel da turma</b> mostra todos os placares.</p></div>
+    </div>
+    <h3>O que é real aqui</h3>
+    <p class="note">Requisições HTTP, regras no servidor, ação externa, log e placar. O que é de mentira: os eventos do “dia completo”, que são fixos para todos compararem o mesmo cenário.</p>
+  </div>
+</div>
+
+<div id="toast" class="toast"></div>
+
+<script src="app.js"></script>
+</body>
+</html>

@@ -1,6 +1,6 @@
 # Roteiro da palestra — Automatização de Processos na Prática
 
-> **Formato:** 55 min (flex 45–60) · **Público:** iniciantes · **Demo:** n8n · **Exercício:** simulador local (plano B: n8n)
+> **Formato:** 55 min (flex 45–60) · **Público:** iniciantes · **Demo:** n8n · **Exercício:** oficina no Render (planos B: simulador local; C: n8n)
 > Legenda: 🎤 fala · 🖥️ ação na tela · ⏱️ tempo · 🅿️ plano B
 > Falas em bloco de citação são sugestões — adapte ao seu jeito de falar.
 
@@ -260,42 +260,46 @@ da demo — com zero dependência de rede.
 
 ## 0:41–0:53 · Exercício em duplas (12 min)
 
-> **Qual exercício usar?** O **plano A é o simulador** (`simulador/index.html`): abre com duplo
-> clique, roda offline, e cada dupla vê o próprio placar e o diagnóstico por critério. Use o
-> **n8n** (plano B) se a sala já tem a ferramenta instalada e você quer que eles vejam os nós reais.
-> O raciocínio cobrado é o mesmo: gatilho → condição → ação → registro.
+> **Qual exercício usar?** O **plano A é a oficina publicada no Render** (`oficina/`): a turma abre um
+> link ou QR, cria um espaço e recebe eventos por um webhook real, com regras no servidor e placar.
+> Não instala nada. O **plano B é o simulador** (`simulador/index.html`): abre com duplo clique, roda
+> offline, mesmas regras e mesmo placar. O **plano C é o n8n**, para quando a sala já tem a ferramenta
+> e você quer mostrar os nós reais. O raciocínio cobrado é o mesmo: gatilho → condição → ação → registro.
 
 🖥️ Slide 18 (briefing).
 
 🎤 **Instruções — fale devagar e repita o critério de sucesso:**
 
-> "Em duplas, doze minutos. Um computador por dupla, com o simulador aberto. Se você está no
-> plano n8n, é o workflow do exercício.
+> "Em duplas, doze minutos. Abram o link que está no slide (ou o QR). Criem um espaço com o nome da
+> dupla e escolham um processo: atendimento, triagem ou relatório.
 >
-> Missão: ajustar as regras de um processo real e ver o robô decidindo em tempo real. No simulador:
-> abra o cenário **Atendimento WhatsApp**, leia a missão e mude as regras de alerta, transferência e
-> registro. No n8n: monte o fluxo formulário → impacto → alerta.
+> Missão: ajustar as regras de um processo real e ver o robô decidindo de verdade. A cada evento, o
+> navegador faz um POST para o webhook do seu espaço, o servidor aplica as suas regras e devolve a
+> decisão. Quem quiser ver a ação sair do servidor abre o webhook.site e cola a URL em 'destino real'.
 >
-> O critério de sucesso é o mesmo nos dois: **o alerta tem que chegar quando importa, não pode chegar
-> quando não importa — e tudo tem que ficar registrado.**
+> O critério de sucesso é o mesmo em qualquer versão: **o alerta tem que chegar quando importa, não
+> pode chegar quando não importa — e tudo tem que ficar registrado.** Quando terminarem, cliquem em
+> **Enviar o dia completo**.
 >
 > O guia está com vocês. Eu vou passar nas duplas. Não me chamem antes de rodar uma vez — o erro faz
 > parte."
 
-🖥️ Slide 19 (5 passos) fica no telão durante todo o exercício. **Não troque de slide.**
-Se estiver usando o simulador, deixe o **simulador projetado** e o slide 19 apenas como referência
-do roteiro n8n.
+🖥️ Slide 19 (5 passos) fica no telão. Deixe o **link/QR visível** e o **painel da turma** (`/painel`)
+aberto em outra aba para projetar no fim. Se estiver no simulador, deixe-o projetado e use o slide 19
+só como referência.
 
 🎤 **Enquanto circula (não fique no palco):**
 - Pergunte "onde vocês estão?" em vez de "deu certo?"
 - Se uma dupla travou 3+ min no mesmo ponto, sente e faça a pergunta que destrava, não a correção.
-- Se uma dupla terminou cedo: aponte os desafios extras do guia. No simulador, peça outro cenário
-  (Triagem ou Relatório) e meta de 90+.
+- Se uma dupla terminou cedo: peça outro processo no modal de resultado e meta de 90+.
 - Se metade da sala travou no mesmo ponto (regra do webhook, escolha de regra): pare tudo, projete e
   resolva em 60 s.
 
-🅿️ **Se o n8n não abrir na máquina de alguém:** troque para o `simulador/index.html` — é offline e
-não depende de instalação. Ou pareie com a dupla vizinha; ninguém fica de fora.
+🅿️ **Se a oficina no Render não abrir:** o free tier dorme após ~15 min e leva ~50 s para acordar —
+recarregue e espere. Se continuar fora, troque para o `simulador/index.html`, que tem as mesmas
+regras e o mesmo placar.
+🅿️ **Se o n8n não abrir na máquina de alguém:** troque para o simulador ou pareie com a dupla vizinha;
+ninguém fica de fora.
 🅿️ **Sem internet:** o simulador continua rodando. Se nem arquivo local abrir, exercício no papel —
 desenhe os 4 blocos + a regra + o "deu erro, avisa quem".
 
@@ -310,6 +314,9 @@ desenhe os 4 blocos + a regra + o "deu erro, avisa quem".
 > "1. O que funcionou de primeira?
 > 2. Onde vocês travaram?
 > 3. Que automação da rotina de vocês fariam amanhã?"
+
+🖥️ Se estiver na oficina, projete o **`/painel`**: o ranking se atualiza sozinho a cada 3 s. Leia dois
+ou três nomes e peça a explicação da **regra**, não da nota.
 
 🎤 **Valide o aprendizado, não o resultado:**
 

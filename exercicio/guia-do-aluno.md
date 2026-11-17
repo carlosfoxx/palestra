@@ -2,8 +2,12 @@
 
 **Tempo:** 12 minutos (+ desafios extras)
 **Formato:** duplas · 1 computador por dupla
-**Ferramenta:** n8n (já aberto pelo instrutor)
+**Ferramenta:** n8n (já aberto pelo instrutor) **ou** a oficina online no Render
 **Nível:** zero programação
+
+> **Versão online (plano A):** se o instrutor passou um link/QR, faça o exercício na oficina
+> publicada. Escolha o processo **Triagem de solicitações** — as regras e o critério de sucesso são os
+> mesmos deste guia. As seções de n8n abaixo ficam como referência da versão com nós.
 
 ---
 
